@@ -93,11 +93,14 @@ body {
 }
 
 :root {
+  --dark-purple: #7B61FF;
   --purple: #9873FF;
+  --light-purple: #B89EFF;
   --white: #ffffff;
   --grey: #B0B0B0;
   --light-grey: #C8C5D1;
   --black: #333333;
+  --red: #F06A4D;
 }
 
 .container {
@@ -148,8 +151,8 @@ body {
 }
 
 .table {
- width: 100%;
- border-collapse: collapse;
+  width: 100%;
+  border-collapse: collapse;
 }
 
 .table__head {
@@ -201,7 +204,6 @@ body {
 }
 
 .add-client {
-  position: sticky;
   justify-content: center;
   padding-top: 40px;
   padding-bottom: 20px;
@@ -216,11 +218,45 @@ body {
   font-weight: 600;
   line-height: normal;
   color: var(--purple);
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+.add-client__btn:focus {
+  background-color: var(--dark-purple);
+  color: var(--white);
+}
+
+.add-client__btn:hover {
+  background-color: var(--light-purple);
+  color: var(--white);
+}
+
+.add-client__btn:active {
+  background-color: var(--dark-purple);
+  color: var(--white);
 }
 
 .add-client__icon {
   margin-right: 12px;
 }
+
+.add-client__icon path {
+  fill: var(--purple);
+  transition: fill 0.3s ease-in-out;
+}
+
+.add-client__btn:focus svg path {
+  fill: var(--white);
+}
+
+.add-client__btn:hover svg path {
+  fill: var(--white);
+}
+
+.add-client__btn:active svg path {
+  fill: var(--white);
+}
+
 /*static-html*/
 
 /*table*/
@@ -250,6 +286,8 @@ body {
 }
 
 .table__contacts-block {
+  flex-wrap: wrap;
+  max-width: 110px;
   gap: 7px;
 }
 
@@ -257,19 +295,40 @@ body {
   position: relative;
 }
 
+.table__contact svg g {
+  opacity: 0.7;
+  transition: opacity, 0.3s ease-in-out;
+}
+
+.table__contact:focus svg g {
+  opacity: 1;
+}
+
+.table__contact:hover svg g {
+  opacity: 1;
+}
+
 .table__tooltip-block {
   visibility: hidden;
   position: absolute;
   z-index: 1;
-  bottom: 125%;
+  bottom: 140%;
   left: 50%;
   display: inline-block;
   padding: 7px 14px;
-  color: var(--white);
   text-align: center;
-  background-color: #333;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+  color: var(--white);
+  background-color: var(--black);
   opacity: 0;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.table__tooltip-link {
+  text-decoration-line: underline;
+  color: var(--light-purple);
 }
 
 .table__tooltip-block .table__tooltip-value::after {
@@ -280,12 +339,64 @@ body {
   margin-left: -5px;
   border-width: 5px;
   border-style: solid;
-  border-color: #333 transparent transparent transparent;
+  border-color: var(--black) transparent transparent transparent;
 }
 
 .table__contact:hover .table__tooltip-block {
   visibility: visible;
   opacity: 1;
+}
+
+.table__contacts-plus {
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--purple);
+  text-align: center;
+  font-size: 8px;
+  font-weight: 600;
+  line-height: normal;
+  color: var(--black);
+  border-radius: 100%;
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
+.table__contacts-plus:focus {
+  color: var(--white);
+  background-color: var(--dark-purple);
+}
+
+.table__contacts-plus:hover {
+  color: var(--white);
+  background-color: var(--light-purple);
+}
+
+.table__contacts-plus:active {
+  color: var(--white);
+  background-color: var(--dark-purple);
+}
+
+.table__change {
+  transition: color 0.3s ease-in-out;
+}
+
+.table__change:focus {
+  color: var(--purple);
+}
+
+.table__change:hover {
+  color: var(--purple);
+}
+
+.table__delete {
+  transition: color 0.3s ease-in-out;
+}
+
+.table__delete:focus {
+  color: var(--red);
+}
+
+.table__delete:hover {
+  color: var(--red);
 }
 
 /*table*/

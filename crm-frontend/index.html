@@ -9,6 +9,7 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/media.css">
   <link rel="icon" type="image/x-icon" href="img/logo.svg">
+  <script defer src="main.js"></script>
 </head>
 
 <body>
@@ -31,7 +32,7 @@
       <h1 class="table-section__title">Клиенты</h1>
       <table class="table">
         <thead>
-          <tr class="table__row">
+          <tr class="table__head-row">
             <td class="table__head table__head--1">
               <span class="table__header table__header--id">ID</span>
             </td>
@@ -48,26 +49,23 @@
             <td class="table__head table__head--5">
               <span class="table__header">Контакты</span>
             </td>
-            <td class="table__head table__head--6">
+            <td class="table__head table__head--6" colspan="2">
               <span class="table__header">Действия</span>
             </td>
           </tr>
         </thead>
-        <tbody class="table__core"></tbody>
       </table>
-    </div>
-  </section>
-  <section class="add-client">
-    <div class="container add-client__container flex">
-      <button class="add-client__btn btn-reset flex">
-        <svg class="add-client__icon" aria-hidden="true" width="23" height="16" viewBox="0 0 23 16" fill="none"
-          xmlns="http://www.w3.org/2000/svg">
-          <path id="Vector"
-            d="M14.5 8C16.71 8 18.5 6.21 18.5 4C18.5 1.79 16.71 0 14.5 0C12.29 0 10.5 1.79 10.5 4C10.5 6.21 12.29 8 14.5 8ZM5.5 6V3H3.5V6H0.5V8H3.5V11H5.5V8H8.5V6H5.5ZM14.5 10C11.83 10 6.5 11.34 6.5 14V16H22.5V14C22.5 11.34 17.17 10 14.5 10Z"
-            fill="#9873FF" />
-        </svg>
-        Добавить клиента
-      </button>
+      <div class="add-client flex">
+        <button class="add-client__btn btn-reset flex">
+          <svg class="add-client__icon" aria-hidden="true" width="23" height="16" viewBox="0 0 23 16" fill="none"
+            xmlns="http://www.w3.org/2000/svg">
+            <path id="Vector"
+              d="M14.5 8C16.71 8 18.5 6.21 18.5 4C18.5 1.79 16.71 0 14.5 0C12.29 0 10.5 1.79 10.5 4C10.5 6.21 12.29 8 14.5 8ZM5.5 6V3H3.5V6H0.5V8H3.5V11H5.5V8H8.5V6H5.5ZM14.5 10C11.83 10 6.5 11.34 6.5 14V16H22.5V14C22.5 11.34 17.17 10 14.5 10Z"
+              fill="#9873FF" />
+          </svg>
+          Добавить клиента
+        </button>
+      </div>
     </div>
   </section>
 </body>

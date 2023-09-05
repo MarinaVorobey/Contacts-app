@@ -52,6 +52,10 @@ img {
   clip: rect(0 0 0 0);
 }
 
+.non-display {
+  display: none;
+}
+
 @font-face {
   font-family: 'OpenSans';
   src: local('OpenSans-Regular'),
@@ -92,6 +96,7 @@ body {
   --purple: #9873FF;
   --white: #ffffff;
   --grey: #B0B0B0;
+  --light-grey: #C8C5D1;
   --black: #333333;
 }
 
@@ -104,6 +109,7 @@ body {
 }
 /*global*/
 
+/*static-html*/
 .header {
   padding: 20px 0;
   box-shadow: 0px 3.38629px 5.64383px 0px rgba(176, 190, 197, 0.32),
@@ -143,34 +149,36 @@ body {
 
 .table {
  width: 100%;
+ border-collapse: collapse;
 }
 
 .table__head {
-  padding: 0 10px;
+  padding: 10px;
+  cursor: pointer;
 }
 
 .table__head--1 {
-  width: 10%;
+  max-width: 10%;
 }
 
 .table__head--2 {
-  width: 20%;
+  max-width: 20%;
 }
 
 .table__head--3 {
-  width: 15%;
+  max-width: 15%;
 }
 
 .table__head--4 {
-  width: 15%;
+  max-width: 15%;
 }
 
 .table__head--5 {
-  width: 15%;
+  max-width: 15%;
 }
 
 .table__head--6 {
-  width: 25%;
+  max-width: 25%;
 }
 
 .table__header {
@@ -193,11 +201,10 @@ body {
 }
 
 .add-client {
-  padding-top: 40px;
-}
-
-.add-client__container {
+  position: sticky;
   justify-content: center;
+  padding-top: 40px;
+  padding-bottom: 20px;
 }
 
 .add-client__btn {
@@ -214,3 +221,71 @@ body {
 .add-client__icon {
   margin-right: 12px;
 }
+/*static-html*/
+
+/*table*/
+
+.table__column {
+  padding: 10px;
+  border-top: 1px solid var(--light-grey);
+  border-bottom: 1px solid var(--light-grey);
+  font-size: 14px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--black);
+}
+
+.table__column--id {
+  color: var(--grey);
+}
+
+.table__text--date {
+  display: inline-block;
+  margin-right: 10px;
+}
+
+.table__text--time {
+  display: inline-block;
+  color: var(--grey);
+}
+
+.table__contacts-block {
+  gap: 7px;
+}
+
+.table__contact {
+  position: relative;
+}
+
+.table__tooltip-block {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1;
+  bottom: 125%;
+  left: 50%;
+  display: inline-block;
+  padding: 7px 14px;
+  color: var(--white);
+  text-align: center;
+  background-color: #333;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.table__tooltip-block .table__tooltip-value::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: #333 transparent transparent transparent;
+}
+
+.table__contact:hover .table__tooltip-block {
+  visibility: visible;
+  opacity: 1;
+}
+
+/*table*/

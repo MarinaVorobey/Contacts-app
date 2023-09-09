@@ -77,9 +77,7 @@
     const data2 = data.map(x => x.id);
     for (let i = 0; i < data2.length; i++) {
       await fetch(`http://localhost:3000/api/clients/${data2[i]}`,
-        {
-          method: 'DELETE',
-        });
+        { method: 'DELETE' });
     }
   }
 
@@ -94,7 +92,7 @@
     renderClientsTable(data);
   })();
 
-  async function saveToServer(data) {
+  async function saveToServer(data, id = false) {
     await fetch('http://localhost:3000/api/clients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -110,10 +108,16 @@
     });
   }
 
+  async function deleteFromServer(id) {
+    await fetch(`http://localhost:3000/api/clients/${id}`, {
+      method: 'DELETE',
+    });
+  }
+
   function getClientData(cliebntObj) {
     const id = cliebntObj.id;
     const fullName = `${cliebntObj.surname} ${cliebntObj.name} ${cliebntObj.lastName}`;
-
+    // Функция-помошник
     function getDateTime(column) {
       const day = (column.getDate() < 10) ?
         `0${column.getDate()}` : column.getDate();
@@ -131,12 +135,7 @@
     const created = getDateTime(cliebntObj.createdAt);
     const updated = getDateTime(cliebntObj.updatedAt);
 
-    return {
-      id,
-      fullName,
-      created,
-      updated
-    };
+    return { id, fullName, created, updated };
   }
 
   function getContact(formattingContact) {
@@ -148,7 +147,6 @@
     tooltipBlock.classList.add('table__tooltip-block');
     const tooltipText = document.createElement('span');
     tooltipText.classList.add('table__tooltip-value');
-
 
     switch (formattingContact.type) {
       case 'Телефон': contactLink.innerHTML =
@@ -233,6 +231,21 @@
     tooltipBlock.append(tooltipText);
     contactLink.append(tooltipBlock);
     return contactLink;
+  }
+
+  function getContactsData(formattedBlock) {
+    const formattedContacts = formattedBlock.getElementsByClassName('form__contact');
+    const contactsArr = [];
+    for (const formattedContact of formattedContacts) {
+      const select = formattedContact.getElementsByTagName('select')[0];
+      const input = formattedContact.getElementsByClassName('form__contact-input')[0];
+      const contactObj = {
+        type: select.value,
+        value: input.value
+      };
+      contactsArr.push(contactObj);
+    }
+    return contactsArr;
   }
 
   function renderClientsTable(clientsArray) {
@@ -339,9 +352,8 @@
       </svg>
       Изменить`;
       changeButton.addEventListener('click', () => {
-        const changeModal = createModalForm('Изменить данные', test, test, 'Удалить клиента', clientData.id,
-          clientsArray[i].surname, clientsArray[i].name, clientsArray[i].lastName, clientsArray[i].contacts);
-        BODY.append(changeModal);
+        createModalForm('Изменить данные', changeOnServer, 'Сохранить', createDeleteModal, 'Удалить клиента', clientData.id,
+        clientsArray[i].surname, clientsArray[i].name, clientsArray[i].lastName, clientsArray[i].contacts);
       });
       td6.append(changeButton);
 
@@ -363,9 +375,7 @@
       </defs>
       </svg>
       Удалить`;
-      deleteButton.addEventListener('click', () => {
-        console.log('delete');
-      });
+      deleteButton.addEventListener('click', () => createDeleteModal(clientsArray[i].id));
       td7.append(deleteButton);
     }
   }
@@ -377,10 +387,6 @@
     renderClientsTable(data);
   }
 
-  function test(obj) {
-    console.log(obj);
-  }
-
   function closeModal() {
     const overlay = document.getElementById('overlay');
     const modal = document.getElementsByClassName('modal')[0];
@@ -388,9 +394,7 @@
     modal.remove();
   }
 
-  // Блок "Добавление, изменение и удаление клиентов"; Работа с модальными окнами
-  function createModalForm(titleText, submitAction, revertAction, revertText,
-    clientId = '', clientSurname = '', clientName = '', clientLastname = '', clientContacts = '') {
+  function createModalBlock() {
     const overlay = document.getElementById('overlay');
     overlay.style.display = 'block';
 
@@ -408,6 +412,32 @@
     </svg>`;
     modalClose.addEventListener('click', () => closeModal());
     modalContent.append(modalClose);
+    return { modal, modalContent};
+  }
+
+  function addSubmitBlock(submitBtnText, revertBtnText) {
+    const submitBlock = document.createElement('div');
+    submitBlock.classList.add('form__submit-block', 'flex');
+    const submitBtn = document.createElement('button');
+    submitBtn.classList.add('btn', 'form__button-submit', 'btn-reset');
+    submitBtn.setAttribute('type', 'submit');
+    submitBtn.textContent = submitBtnText;
+
+    const revertBtn = document.createElement('button');
+    revertBtn.classList.add('btn', 'form__button-revert', 'btn-reset');
+    revertBtn.setAttribute('type', 'button');
+    revertBtn.textContent = revertBtnText;
+
+    submitBlock.append(submitBtn);
+    submitBlock.append(revertBtn);
+    return { submitBlock, submitBtn, revertBtn};
+  }
+
+  // Блок "Добавление, изменение и удаление клиентов"; Работа с модальными окнами
+  function createModalForm(titleText, submitAction, submitText, revertAction, revertText,
+    clientId = '', clientSurname = '', clientName = '', clientLastname = '', clientContacts = '') {
+    const modal = createModalBlock().modal;
+    const modalContent = createModalBlock().modalContent;
 
     const modalTitleBlock = document.createElement('div');
     modalTitleBlock.classList.add('modal__title-block');
@@ -485,38 +515,61 @@
     form.append(contactsFormBlock);
 
     // Создать кнопки отправки формы и отмены(или удаления)
-    const submitBlock = document.createElement('div');
-    submitBlock.classList.add('form__submit-block', 'flex');
-    const submitBtn = document.createElement('button');
-    submitBtn.classList.add('btn', 'form__button-submit', 'btn-reset');
-    submitBtn.setAttribute('type', 'submit');
-    submitBtn.textContent = 'Сохранить';
+    const submit = addSubmitBlock(submitText, revertText);
+    const submitBlock = submit.submitBlock;
+    form.append(submitBlock);
     form.addEventListener('submit', (e) => {
       e.preventDefault();
+      const contactsData = getContactsData(contactsFormBlock);
       const clientNewObj = {
         name: textInputs.nameInput.value,
         surname: textInputs.surnameInput.value,
         lastName: textInputs.lastnameInput.value,
-        contacts: getContactsData(contactsFormBlock)
+        contacts: contactsData
       };
-      submitAction(clientNewObj);
-      closeModal();
-      reRenderTable();
+      if (contactsData.length !== 0) {
+        submitAction(clientNewObj, clientId);
+        closeModal();
+        reRenderTable();
+      } else { console.log('error'); }
     });
-
-    const revertBtn = document.createElement('button');
-    revertBtn.classList.add('btn', 'form__button-revert', 'btn-reset');
-    revertBtn.setAttribute('type', 'button');
-    revertBtn.textContent = revertText;
-    revertBtn.addEventListener('click', () => revertAction());
-
-    submitBlock.append(submitBtn);
-    submitBlock.append(revertBtn);
-    form.append(submitBlock);
+    submit.revertBtn.addEventListener('click', () => revertAction(clientId));
 
     modalContent.append(form);
     modal.append(modalContent);
-    return modal;
+    BODY.append(modal);
+  }
+
+  function createDeleteModal(clientId) {
+    if (document.getElementsByClassName('modal').length) {
+      closeModal();
+    }
+    const modal = createModalBlock().modal;
+    const modalContent = createModalBlock().modalContent;
+    modalContent.classList.add('modal__delete-modal-content');
+
+    const deleteModalTitle = document.createElement('h2');
+    deleteModalTitle.classList.add('modal__title', 'modal__delete-title');
+    deleteModalTitle.textContent = 'Удалить клиента';
+    modalContent.append(deleteModalTitle);
+    const deleteModalDescr = document.createElement('p');
+    deleteModalDescr.classList.add('modal__descr');
+    deleteModalDescr.textContent = 'Вы действительно хотите удалить данного клиента?';
+    modalContent.append(deleteModalDescr);
+
+    const submit = addSubmitBlock('Удалить', 'Отмена');
+    const submitBlock = submit.submitBlock;
+
+    submit.submitBtn.addEventListener('click', () => {
+      deleteFromServer(clientId);
+      closeModal();
+      reRenderTable();
+    });
+    submit.revertBtn.addEventListener('click', () => closeModal());
+
+    modalContent.append(submitBlock);
+    modal.append(modalContent);
+    BODY.append(modal);
   }
 
   function addTextInputs(targetList, targetForm, surnameValue, nameValue, lastnameValue) {
@@ -592,7 +645,7 @@
   }
 
   function addContactInput(target, customSelectLists, addBtn,
-    type = 'Телефон', data = '') {
+  type = 'Телефон', data = '') {
     // Подблок 1: создать фактический select-список элементов и добавить к нему механики взаимодействия опций между собой
     // Создать блоки, включающие в себя контент и фактический select-списков
     target.style.padding = '17px 30px'
@@ -820,22 +873,6 @@
   const addButton = document.getElementsByClassName('add-client__btn')[0];
   addButton.addEventListener('click', function addClient() {
     // Функция объявлена на строке
-    const addModal = createModalForm('Новый клиент', saveToServer, closeModal, 'Отмена');
-    BODY.append(addModal);
+    createModalForm('Новый клиент', saveToServer, 'Сохранить', closeModal, 'Отмена');
   });
-
-  function getContactsData(formattedBlock) {
-    const formattedContacts = formattedBlock.getElementsByClassName('form__contact');
-    const contactsArr = [];
-    for (const formattedContact of formattedContacts) {
-      const select = formattedContact.getElementsByTagName('select')[0];
-      const input = formattedContact.getElementsByClassName('form__contact-input')[0];
-      const contactObj = {
-        type: select.value,
-        value: input.value
-      };
-      contactsArr.push(contactObj);
-    }
-    return contactsArr;
-  }
 })();

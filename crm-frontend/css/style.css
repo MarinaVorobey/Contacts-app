@@ -28,6 +28,10 @@ img {
   list-style: none;
 }
 
+.btn {
+  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
+}
+
 .btn-reset {
   padding: 0;
   border: none;
@@ -112,6 +116,7 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+
 /*global*/
 
 /*static-html*/
@@ -226,7 +231,6 @@ body {
   font-weight: 600;
   line-height: normal;
   color: var(--purple);
-  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
 }
 
 .add-client__btn:focus {
@@ -378,7 +382,6 @@ body {
   line-height: normal;
   color: var(--black);
   border-radius: 100%;
-  transition: background-color 0.3s ease-in-out, color 0.3s ease-in-out;
 }
 
 .table__contacts-plus:focus {
@@ -396,20 +399,12 @@ body {
   background-color: var(--dark-purple);
 }
 
-.table__change {
-  transition: color 0.3s ease-in-out;
-}
-
 .table__change:focus {
   color: var(--purple);
 }
 
 .table__change:hover {
   color: var(--purple);
-}
-
-.table__delete {
-  transition: color 0.3s ease-in-out;
 }
 
 .table__delete:focus {
@@ -447,7 +442,9 @@ body {
 }
 
 .modal__title-block {
-  display: inline-block;
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
   margin-bottom: 15px;
   padding: 25px 30px 0 25px;
 }
@@ -458,6 +455,13 @@ body {
   font-weight: 700;
   line-height: normal;
   color: var(--black);
+}
+
+.modal__id-display {
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--grey);
 }
 
 .form__inputs {
@@ -508,12 +512,18 @@ body {
 .form__contacts-block {
   flex-direction: column;
   justify-content: center;
-  padding: 0 30px;
+  gap: 15px;
+  padding: 8px 30px;
   margin-bottom: 25px;
   background: var(--white-bg);
 }
 
+.form__contacts-block-other-type {
+  flex-wrap: wrap;
+}
+
 .form__contacts-add {
+  position: relative;
   justify-content: center;
   align-items: center;
   padding: 8px 0;
@@ -523,7 +533,52 @@ body {
   color: var(--black);
 }
 
+.form__contacts-add:focus {
+  color: var(--purple);
+}
+
+.form__contacts-add:hover {
+  color: var(--purple);
+}
+
+.form__contacts-add svg path {
+  fill: var(--purple);
+  transition: fill 0.3s ease-in-out;
+}
+
+.form__contacts-add:hover svg path {
+  fill: var(--white-bg);
+}
+
+.form__contacts-add:active svg path {
+  fill: var(--white-bg);
+}
+
+.form__contacts-add::after {
+  content: '';
+  position: absolute;
+  top: calc(25% + 1px);
+  left: calc(30% + 5px);
+  width: 16px;
+  height: 16px;
+  background-image: url('../img/contact_add_hover.svg');
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.form__contacts-add:hover::after {
+  opacity: 1;
+}
+
+.form__contacts-add:active:after {
+  opacity: 1;
+}
+
 .form__custom-select {
+  position: relative;
+}
+
+.form__custom-selected-arrow-block {
   position: relative;
 }
 
@@ -536,12 +591,37 @@ body {
   line-height: normal;
   color: var(--black);
   background: #E7E5EB;
+  cursor: pointer;
+}
+
+.form__custom-arrow-down {
+  position: absolute;
+  top: 13px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  background-image: url('../img/contacts_arrow_down.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
+
+.form__custom-arrow-up {
+  position: absolute;
+  top: 13px;
+  right: 8px;
+  width: 12px;
+  height: 12px;
+  background-image: url('../img/contacts_arrow_up.svg');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 .form__custom-option {
   position: absolute;
   z-index: 15;
-  width: 123px;
+  width: 125px;
   padding: 10px 12px 0 12px;
   border-left: 1px solid var(--light-grey);
   border-right: 1px solid var(--light-grey);
@@ -549,11 +629,133 @@ body {
   font-weight: 400;
   line-height: normal;
   background: #F4F3F6;
+  cursor: pointer;
 }
 
 .form__custom-option:last-child {
   padding-bottom: 8px;
   border-bottom: 1px solid var(--light-grey);
+}
+
+.form__contact-input {
+  flex-grow: 1;
+  height: 39px;
+  border: 1px solid var(--light-grey);
+  padding: 12px 8px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: normal;
+  color: var(--black);
+}
+
+.form__contact-input::placeholder {
+  font-weight: 400;
+  color: var(--grey);
+}
+
+.form__delete-block {
+  position: relative;
+}
+
+.form__tooltip-block {
+  visibility: hidden;
+  position: absolute;
+  z-index: 1;
+  bottom: 100%;
+  left: 50%;
+  width: 80px;
+  margin-left: -40px;
+  padding: 7px 14px;
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: normal;
+  color: var(--white);
+  background-color: var(--black);
+  opacity: 0;
+  transition: opacity 0.3s ease-in-out;
+}
+
+.form__tooltip-block .form__tooltip-value::after {
+  content: "";
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  margin-left: -5px;
+  border-width: 5px;
+  border-style: solid;
+  border-color: var(--black) transparent transparent transparent;
+}
+
+.form__delete-block:hover .form__tooltip-block {
+  visibility: visible;
+  opacity: 1;
+}
+
+.form__delete-contact {
+  padding: 9px 5px;
+  border: 1px solid var(--light-grey);
+  background: #E7E5EB;
+  transition: border 0.3s ease-in-out;
+}
+
+.form__delete-contact svg path {
+  fill: var(--grey);
+  transition: fill 0.3s ease-in-out;
+}
+
+.form__delete-contact:focus {
+  border: 1px solid var(--red);
+}
+
+.form__delete-contact:hover {
+  border: 1px solid var(--red);
+}
+
+.form__delete-contact:focus svg path {
+  fill: var(--red);
+}
+
+.form__delete-contact:hover svg path {
+  fill: var(--red);
+}
+
+.form__submit-block {
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 25px;
+}
+
+.form__button-submit {
+  padding: 15px 35px;
+  font-size: 14px;
+  font-weight: 600;
+  line-height: normal;
+  color: var(--white);
+  background-color: var(--purple);
+  transition: background-color 0.3s ease-in-out;
+}
+
+.form__button-submit:focus {
+  background-color: var(--dark-purple);
+}
+
+.form__button-submit:hover {
+  background-color: var(--light-purple);
+}
+
+.form__button-submit:active {
+  background-color: var(--dark-purple);
+}
+
+.form__button-revert {
+  border-bottom: 1px solid var(--black);
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--black);
 }
 
 /*modals*/

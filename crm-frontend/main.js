@@ -67,36 +67,6 @@
         }
       ],
     },
-    {
-      name: 'Олег',
-      surname: 'Димитревский',
-      lastName: 'Алексеевич',
-      contacts: [
-        {
-          type: 'Телефон',
-          value: '+23904567890'
-        },
-        {
-          type: 'Vk',
-          value: 'https://vk.com/dimitrevsky'
-        }
-      ],
-    },
-    {
-      name: 'Олег',
-      surname: 'Димитревский',
-      lastName: 'Алексеевич',
-      contacts: [
-        {
-          type: 'Телефон',
-          value: '+23904567890'
-        },
-        {
-          type: 'Vk',
-          value: 'https://vk.com/dimitrevsky'
-        }
-      ],
-    },
   ];
   const COLUMN_COUNT = 7;
   let searchedArray = [];
@@ -127,6 +97,14 @@
   async function saveToServer(data) {
     await fetch('http://localhost:3000/api/clients', {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  }
+
+  async function changeOnServer(data, id) {
+    await fetch(`http://localhost:3000/api/clients/${id}`, {
+      method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
@@ -392,8 +370,15 @@
     }
   }
 
-  function test() {
-    console.log('submit');
+  async function reRenderTable() {
+    document.getElementsByClassName('table__body')[0].remove();
+    const response = await fetch('http://localhost:3000/api/clients');
+    const data = await response.json();
+    renderClientsTable(data);
+  }
+
+  function test(obj) {
+    console.log(obj);
   }
 
   function closeModal() {
@@ -439,7 +424,6 @@
     const form = document.createElement('form');
     form.classList.add('form', 'modal__form');
     form.setAttribute('name', 'form');
-    form.setAttribute('method', 'post');
     const formInputs = document.createElement('div');
     formInputs.classList.add('form__inputs');
     const list = document.createElement('ul');
@@ -447,7 +431,7 @@
     formInputs.append(list);
     form.append(formInputs);
     // Объявлена на строке
-    addTextInputs(list, form, clientSurname, clientName, clientLastname);
+    const textInputs = addTextInputs(list, form, clientSurname, clientName, clientLastname);
 
     const contactsFormBlock = document.createElement('div');
     contactsFormBlock.classList.add('form__contacts-block', 'flex');
@@ -475,9 +459,21 @@
     contactsFormBlock.append(contactsBtn);
     const otherLists = contactsFormBlock.getElementsByClassName('form__custom-select');
     contactsBtn.addEventListener('click', () => {
-      if (otherLists.length < 10) {
+      const otherInputs = contactsFormBlock.getElementsByClassName('form__contact-input');
+      let emptyInput = false;
+      for (const otherInput of otherInputs) {
+        if (!otherInput.value) {
+          emptyInput = true;
+          break;
+        }
+      }
+      if (otherLists.length >= 10) {
+        console.log('error');
+      } else if (emptyInput) {
+        console.log('error');
+      } else {
         addContactInput(contactsFormBlock, otherLists, contactsBtn);
-      } else { console.log('error'); }
+      }
     });
 
     if (clientContacts) {
@@ -495,9 +491,17 @@
     submitBtn.classList.add('btn', 'form__button-submit', 'btn-reset');
     submitBtn.setAttribute('type', 'submit');
     submitBtn.textContent = 'Сохранить';
-    submitBtn.addEventListener('submit', (e) => {
-      e.preventDefault;
-      submitAction();
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const clientNewObj = {
+        name: textInputs.nameInput.value,
+        surname: textInputs.surnameInput.value,
+        lastName: textInputs.lastnameInput.value,
+        contacts: getContactsData(contactsFormBlock)
+      };
+      submitAction(clientNewObj);
+      closeModal();
+      reRenderTable();
     });
 
     const revertBtn = document.createElement('button');
@@ -579,13 +583,19 @@
     checkNonEmpty(surnameInput.value, legendSurname);
     checkNonEmpty(nameInput.value, legendName);
     checkNonEmpty(lastnameInput.value, legendLastname);
+
+    return {
+      nameInput,
+      surnameInput,
+      lastnameInput
+    };
   }
 
   function addContactInput(target, customSelectLists, addBtn,
     type = 'Телефон', data = '') {
     // Подблок 1: создать фактический select-список элементов и добавить к нему механики взаимодействия опций между собой
     // Создать блоки, включающие в себя контент и фактический select-списков
-    target.style.padding = '25px 30px'
+    target.style.padding = '17px 30px'
     const inputBlock = document.createElement('div');
     inputBlock.classList.add('form__contact', 'flex');
     inputBlock.id = `form__contact--${customSelectLists.length + 1}`;
@@ -810,7 +820,22 @@
   const addButton = document.getElementsByClassName('add-client__btn')[0];
   addButton.addEventListener('click', function addClient() {
     // Функция объявлена на строке
-    const addModal = createModalForm('Новый клиент', test, closeModal, 'Отмена');
+    const addModal = createModalForm('Новый клиент', saveToServer, closeModal, 'Отмена');
     BODY.append(addModal);
   });
+
+  function getContactsData(formattedBlock) {
+    const formattedContacts = formattedBlock.getElementsByClassName('form__contact');
+    const contactsArr = [];
+    for (const formattedContact of formattedContacts) {
+      const select = formattedContact.getElementsByTagName('select')[0];
+      const input = formattedContact.getElementsByClassName('form__contact-input')[0];
+      const contactObj = {
+        type: select.value,
+        value: input.value
+      };
+      contactsArr.push(contactObj);
+    }
+    return contactsArr;
+  }
 })();

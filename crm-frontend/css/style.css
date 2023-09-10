@@ -509,6 +509,14 @@ body {
   color: var(--black);
 }
 
+.form__text-input--invalid {
+  border-bottom: 1px solid var(--red);
+}
+
+.form__text-input--invalid-submited {
+  border-bottom: 3px solid var(--red);
+}
+
 .form__contacts-block {
   flex-direction: column;
   justify-content: center;
@@ -594,28 +602,23 @@ body {
   cursor: pointer;
 }
 
-.form__custom-arrow-down {
+.form__custom-arrow-down, .form__custom-arrow-up {
   position: absolute;
   top: 13px;
   right: 8px;
   width: 12px;
   height: 12px;
-  background-image: url('../img/contacts_arrow_down.svg');
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
 
+.form__custom-arrow-down {
+  background-image: url('../img/contacts_arrow_down.svg');
+}
+
 .form__custom-arrow-up {
-  position: absolute;
-  top: 13px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
   background-image: url('../img/contacts_arrow_up.svg');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
 }
 
 .form__custom-option {
@@ -632,7 +635,7 @@ body {
   cursor: pointer;
 }
 
-.form__custom-option:last-child {
+.form__custom-option--last {
   padding-bottom: 8px;
   border-bottom: 1px solid var(--light-grey);
 }
@@ -651,6 +654,14 @@ body {
 .form__contact-input::placeholder {
   font-weight: 400;
   color: var(--grey);
+}
+
+.form__contact-input--invalid {
+  border: 1px solid var(--red);
+}
+
+.form__contact-input--invalid-submited {
+  background-color: #fbd8d0;
 }
 
 .form__delete-block {
@@ -725,7 +736,7 @@ body {
   justify-content: center;
   align-items: center;
   gap: 6px;
-  padding-bottom: 25px;
+  padding: 0 100px 25px 100px;
 }
 
 .form__button-submit {
@@ -778,6 +789,16 @@ body {
   font-weight: 400;
   line-height: normal;
   color: var(--black);
+}
+
+.form__error {
+  margin: 0;
+  margin-bottom: 10px;
+  text-align: center;
+  font-size: 10px;
+  font-weight: 400;
+  line-height: normal;
+  color: var(--red);
 }
 
 /*modals*/

@@ -233,14 +233,14 @@
     return contactLink;
   }
 
-  function getContactsData(formattedBlock) {
+  function getContactsDataFromForm(formattedBlock) {
     const formattedContacts = formattedBlock.getElementsByClassName('form__contact');
     const contactsArr = [];
     for (const formattedContact of formattedContacts) {
-      const select = formattedContact.getElementsByTagName('select')[0];
+      const select = formattedContact.getElementsByClassName('form__custom-selected')[0];
       const input = formattedContact.getElementsByClassName('form__contact-input')[0];
       const contactObj = {
-        type: select.value,
+        type: select.textContent,
         value: input.value
       };
       contactsArr.push(contactObj);
@@ -269,7 +269,8 @@
         ++j;
       }
 
-      const [td1, td2, td3, td4, td5, td6, td7] = body.getElementsByClassName(`table__column--${i + 1}`);
+      const [td1, td2, td3, td4, td5, td6, td7] =
+        body.getElementsByClassName(`table__column--${i + 1}`);
       // Столбец "ID"
       td1.textContent = clientData.id;
       td1.classList.add('table__column--id');
@@ -352,8 +353,9 @@
       </svg>
       Изменить`;
       changeButton.addEventListener('click', () => {
-        createModalForm('Изменить данные', changeOnServer, 'Сохранить', createDeleteModal, 'Удалить клиента', clientData.id,
-        clientsArray[i].surname, clientsArray[i].name, clientsArray[i].lastName, clientsArray[i].contacts);
+        createModalForm('Изменить данные', changeOnServer, 'Сохранить', createDeleteModal,
+          'Удалить клиента', clientData.id, clientsArray[i].surname, clientsArray[i].name,
+          clientsArray[i].lastName, clientsArray[i].contacts);
       });
       td6.append(changeButton);
 
@@ -412,7 +414,7 @@
     </svg>`;
     modalClose.addEventListener('click', () => closeModal());
     modalContent.append(modalClose);
-    return { modal, modalContent};
+    return { modal, modalContent };
   }
 
   function addSubmitBlock(submitBtnText, revertBtnText) {
@@ -430,7 +432,7 @@
 
     submitBlock.append(submitBtn);
     submitBlock.append(revertBtn);
-    return { submitBlock, submitBtn, revertBtn};
+    return { submitBlock, submitBtn, revertBtn };
   }
 
   // Блок "Добавление, изменение и удаление клиентов"; Работа с модальными окнами
@@ -489,26 +491,17 @@
     contactsFormBlock.append(contactsBtn);
     const otherLists = contactsFormBlock.getElementsByClassName('form__custom-select');
     contactsBtn.addEventListener('click', () => {
-      const otherInputs = contactsFormBlock.getElementsByClassName('form__contact-input');
-      let emptyInput = false;
-      for (const otherInput of otherInputs) {
-        if (!otherInput.value) {
-          emptyInput = true;
-          break;
-        }
-      }
       if (otherLists.length >= 10) {
         console.log('error');
-      } else if (emptyInput) {
-        console.log('error');
       } else {
-        addContactInput(contactsFormBlock, otherLists, contactsBtn);
+        addContactSelect(contactsFormBlock, otherLists, contactsBtn);
+        removeError();
       }
     });
 
     if (clientContacts) {
       for (const existingContact of clientContacts) {
-        addContactInput(contactsFormBlock, otherLists, contactsBtn,
+        addContactSelect(contactsFormBlock, otherLists, contactsBtn,
           existingContact.type, existingContact.value);
       }
     }
@@ -518,26 +511,46 @@
     const submit = addSubmitBlock(submitText, revertText);
     const submitBlock = submit.submitBlock;
     form.append(submitBlock);
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const contactsData = getContactsData(contactsFormBlock);
+      const contactsData = getContactsDataFromForm(contactsFormBlock);
       const clientNewObj = {
         name: textInputs.nameInput.value,
         surname: textInputs.surnameInput.value,
         lastName: textInputs.lastnameInput.value,
         contacts: contactsData
       };
-      if (contactsData.length !== 0) {
-        submitAction(clientNewObj, clientId);
+      const invalidContacts = form.getElementsByClassName('form__contact-input--invalid');
+      const invalidNames = form.getElementsByClassName('form__text-input--invalid');
+      if (contactsData.length !== 0
+      && !invalidContacts.length && !invalidNames.length) {
+        await submitAction(clientNewObj, clientId);
         closeModal();
-        reRenderTable();
-      } else { console.log('error'); }
+        await reRenderTable();
+      } else if (invalidContacts.length || invalidNames.length) {
+        for (const invalidName of invalidNames) {
+          invalidName.classList.add('form__text-input--invalid-submited');
+        }
+        setTimeout(() => {
+          for (const invalidName of invalidNames) {
+            invalidName.classList.remove('form__text-input--invalid-submited');
+          }
+        }, 800);
+        for (const invalidContact of invalidContacts) {
+          invalidContact.classList.add('form__contact-input--invalid-submited');
+        }
+        setTimeout(() => {
+          for (const invalidContact of invalidContacts) {
+            invalidContact.classList.remove('form__contact-input--invalid-submited');
+          }
+        }, 800);
+      } else { showError('для клиента необходимо добавить как минимум один контакт'); }
     });
     submit.revertBtn.addEventListener('click', () => revertAction(clientId));
 
     modalContent.append(form);
     modal.append(modalContent);
-    BODY.append(modal);
+    BODY.prepend(modal);
   }
 
   function createDeleteModal(clientId) {
@@ -560,10 +573,10 @@
     const submit = addSubmitBlock('Удалить', 'Отмена');
     const submitBlock = submit.submitBlock;
 
-    submit.submitBtn.addEventListener('click', () => {
-      deleteFromServer(clientId);
+    submit.submitBtn.addEventListener('click', async () => {
+      await deleteFromServer(clientId);
       closeModal();
-      reRenderTable();
+      await reRenderTable();
     });
     submit.revertBtn.addEventListener('click', () => closeModal());
 
@@ -571,6 +584,12 @@
     modal.append(modalContent);
     BODY.append(modal);
   }
+
+  const addButton = document.getElementsByClassName('add-client__btn')[0];
+  addButton.addEventListener('click', function addClient() {
+    // Функция объявлена на строке
+    createModalForm('Новый клиент', saveToServer, 'Сохранить', closeModal, 'Отмена');
+  });
 
   function addTextInputs(targetList, targetForm, surnameValue, nameValue, lastnameValue) {
     for (let i = 0; i < 3; i++) {
@@ -592,11 +611,20 @@
         if (input.value.trim() === '') {
           input.value = '';
           legend.classList.remove('form__legend--value');
+          removeError();
+          input.classList.remove('form__text-input--invalid');
         } else {
+          input.classList.remove('form__text-input--invalid');
           legend.classList.add('form__legend--value');
         }
       });
-
+      input.addEventListener('blur', () => {
+        removeError();
+        if (!validateNameInput(input)) {
+          input.classList.add('form__text-input--invalid');
+          showError('заполните поля имени, фамилии и отчества кириллицей без пробелов');
+        }
+      });
       legend.append(legendText);
       legend.append(legendRequired);
       label.append(legend);
@@ -637,191 +665,20 @@
     checkNonEmpty(nameInput.value, legendName);
     checkNonEmpty(lastnameInput.value, legendLastname);
 
-    return {
-      nameInput,
-      surnameInput,
-      lastnameInput
-    };
+    return { nameInput, surnameInput, lastnameInput };
   }
 
-  function addContactInput(target, customSelectLists, addBtn,
-  type = 'Телефон', data = '') {
-    // Подблок 1: создать фактический select-список элементов и добавить к нему механики взаимодействия опций между собой
-    // Создать блоки, включающие в себя контент и фактический select-списков
-    target.style.padding = '17px 30px'
-    const inputBlock = document.createElement('div');
-    inputBlock.classList.add('form__contact', 'flex');
-    inputBlock.id = `form__contact--${customSelectLists.length + 1}`;
-    const customSelect = document.createElement('div');
-    customSelect.classList.add('form__custom-select-block');
-    const select = document.createElement('select');
-    select.setAttribute('name', 'data-type');
-    select.classList.add('non-display');
-    customSelect.append(select);
-    inputBlock.append(customSelect);
-    addBtn.before(inputBlock);
-
-    for (let i = 0; i < 6; i++) {
-      const option = document.createElement('option');
-      option.classList.add('form__contact-option');
-      select.append(option);
-    }
-    // Добавить механики к опциям - их данные, взаимодействие между собой и авто-выбор, если это окно изменения данных о клиенте
-    const [optPhone, optAdditPhone, optEmail, optVk, optFacebook, optOther] =
-      inputBlock.getElementsByClassName('form__contact-option');
-    // Функция-помошник
-    function setSelection(contactType) {
-      if (type === contactType.value) {
-        contactType.setAttribute('selected', 'true');
-      }
-    }
-    optPhone.value = 'Телефон';
-    optPhone.textContent = 'Телефон';
-    setSelection(optPhone);
-
-    optAdditPhone.value = 'Доп. телефон';
-    optAdditPhone.textContent = 'Доп. телефон';
-    // Не показывать опцию дополнительного телефона, если у клиента еще не введен основной
-    (() => {
-      let phonePresent = false;
-      const contactsPresent = target.getElementsByClassName('form__contact-type');
-      const selectedOptions = Array.prototype.map.call(contactsPresent, x => x.value);
-      selectedOptions.splice(selectedOptions.length - 1, 1);
-      for (const opt of selectedOptions) {
-        if (opt === 'Телефон') {
-          phonePresent = true;
-          break;
-        }
-      }
-      if (!phonePresent) {
-        optAdditPhone.classList.add('non-display', 'disabled');
-      }
-      if (phonePresent && type === 'Телефон') {
-        optAdditPhone.setAttribute('selected', 'true');
-      }
-    })();
-
-    optEmail.value = 'Email';
-    optEmail.textContent = 'Email';
-    setSelection(optEmail);
-
-    optVk.value = 'Vk';
-    optVk.textContent = 'Vk';
-    setSelection(optVk);
-
-    optFacebook.value = 'Facebook';
-    optFacebook.textContent = 'Facebook';
-    setSelection(optFacebook);
-
-    optOther.value = 'Другое';
-    optOther.textContent = 'Другое';
-    // Конец подблока 1
-
-    // Подблок 2: создать кастомный select-список и связать его с фактическим(скрытым) select-списком
-    const customBlock = document.createElement('div');
-    customBlock.classList.add('form__custom-select');
-    let selectInner = (`${select.innerHTML}`.replaceAll('option', 'div'))
-      .replaceAll('form__contact-div', 'form__custom-option');
-    selectInner = selectInner.replaceAll(/ value="\w*"/gi, '');
-    selectInner = selectInner.replaceAll(/ value="[а-я]*"/gi, '');
-    selectInner = selectInner.replaceAll(/ value="Доп. телефон"/gi, '');
-    selectInner = selectInner.replaceAll(/ selected="true"/gi, '');
-    customBlock.innerHTML = selectInner;
-    customSelect.append(customBlock);
-
-    const customSlectedBlock = document.createElement('div');
-    const customSelected = document.createElement('div');
-    customSelected.classList.add('form__custom-selected');
-    // Создать стрелки на кастомном селекте
-    customSlectedBlock.append(customSelected);
-    customSlectedBlock.classList.add('form__custom-selected-arrow-block');
-    const arrowDown = document.createElement('div');
-    arrowDown.classList.add('form__custom-arrow-down');
-    const arrowUp = document.createElement('div');
-    arrowUp.classList.add('form__custom-arrow-up', 'non-display');
-    customSlectedBlock.append(arrowDown);
-    customSlectedBlock.append(arrowUp);
-    customBlock.prepend(customSlectedBlock);
-
-    // функция-помошник
-    function closeCustomSelect(selectList) {
-      const upArrow = selectList.getElementsByClassName('form__custom-arrow-up')[0];
-      const downArrow = selectList.getElementsByClassName('form__custom-arrow-down')[0];
-      downArrow.classList.remove('non-display');
-      upArrow.classList.add('non-display');
-      const customOptions = selectList.getElementsByClassName('form__custom-option');
-      for (const customOption of customOptions) {
-        customOption.classList.add('non-display');
-      }
-    }
-    // "Раскрыть" или "закрыть" список по нажатию на окно списка, также закрыть другие списки, расчитать позицию у
-    // каждого элемента в списке
-    const customOptions = customBlock.getElementsByClassName('form__custom-option');
-    customSelected.addEventListener('click', () => {
-      arrowDown.classList.toggle('non-display');
-      arrowUp.classList.toggle('non-display');
-      for (const customSelectList of customSelectLists) {
-        if (customSelectList.id !== customBlock.id) {
-          closeCustomSelect(customSelectList);
-        }
-      }
-      let positionCount = 0;
-      const starterPosition = 39;
-      const nextPosition = 27;
-      for (const customOption of customOptions) {
-        if (!customOption.classList.contains('disabled') && customOption.textContent !== customSelected.textContent) {
-          customOption.style.top = `${starterPosition + nextPosition * positionCount}px`;
-          positionCount++;
-          customOption.classList.toggle('non-display');
-        }
-      }
-    });
-    // При загрузке окна установить значение в списке и "закрыть" список
-    const actualOptions = select.getElementsByClassName('form__contact-option');
-    for (const actualOption of actualOptions) {
-      if (actualOption.hasAttribute('selected')) {
-        customSelected.textContent = actualOption.textContent;
-      }
-      closeCustomSelect(customBlock);
-    }
-    // При нажатии на опцию выпадающего списка, установить новое значение и закрыть список
-    for (const customOptionListener of customOptions) {
-      customOptionListener.addEventListener('click', () => {
-        arrowDown.classList.toggle('non-display');
-        arrowUp.classList.toggle('non-display');
-        select.value = customOptionListener.textContent;
-        customSelected.textContent = customOptionListener.textContent;
-        closeCustomSelect(customBlock);
-      });
-    }
-
-    // Проверить, является ли тип контакта одним из опций в списке
-    let selected = false;
-    for (const selection of inputBlock.getElementsByClassName('form__contact-option')) {
-      if (selection.getAttributeNames().includes('selected')) {
-        selected = true;
-        break;
-      }
-    }
-    if (!selected) {
-      optOther.value = type;
-      optOther.setAttribute('selected', 'true');
-      customSelected.textContent = type;
-    }
-    // Конец подблока 2
-
-    // Подблок 3: создать инпут и его механики
-    // Добавить инпут
+  function addContactTextInput(targetBlock, contactData) {
     const contactInput = document.createElement('input');
     contactInput.classList.add('form__contact-input');
     contactInput.setAttribute('placeholder', 'Введите данные контакта');
     contactInput.setAttribute('required', 'true');
-    contactInput.value = data;
-    inputBlock.append(contactInput);
+    contactInput.value = contactData;
+    targetBlock.append(contactInput);
 
     // Добавить кнопку очистки инпута
     const deleteBlock = document.createElement('div');
-    deleteBlock. classList.add('form__delete-block');
+    deleteBlock.classList.add('form__delete-block');
     const tooltipBlock = document.createElement('div');
     tooltipBlock.classList.add('form__tooltip-block');
     const tooltipText = document.createElement('span');
@@ -847,7 +704,7 @@
     tooltipBlock.append(tooltipText);
     deleteBlock.append(deleteContact);
     deleteBlock.append(tooltipBlock);
-    inputBlock.append(deleteBlock);
+    targetBlock.append(deleteBlock);
 
     if (contactInput.value) {
       deleteContact.classList.remove('non-display');
@@ -857,12 +714,167 @@
       if (contactInput.value.trim() === '') {
         contactInput.value = '';
         deleteContact.classList.add('non-display');
-      } else { deleteContact.classList.remove('non-display'); }
+        removeError();
+        contactInput.classList.remove('form__contact-input--invalid');
+      } else {
+        deleteContact.classList.remove('non-display');
+        contactInput.classList.remove('form__contact-input--invalid');
+      }
+    });
+    contactInput.addEventListener('blur', () => {
+      removeError();
+      const selectValue = targetBlock.getElementsByClassName('form__custom-selected')[0].textContent;
+      const valid = validateContactInput(selectValue, contactInput);
+      if (valid.validation !== true) {
+        contactInput.classList.add('form__contact-input--invalid');
+        showError(valid.errText);
+      }
     });
     deleteContact.addEventListener('click', () => {
-      inputBlock.remove();
+      targetBlock.remove();
+      removeError();
     });
+    return contactInput;
+  }
 
+  function addContactSelect(target, customSelectLists, addBtn,
+    type = 'Телефон', data = '') {
+    // Создать блоки, включающие в себя контент
+    target.style.padding = '25px 30px'
+    const inputBlock = document.createElement('div');
+    inputBlock.classList.add('form__contact', 'flex');
+
+    const customBlock = document.createElement('div');
+    customBlock.classList.add('form__custom-select');
+    inputBlock.append(customBlock);
+    addBtn.before(inputBlock);
+
+    for (let i = 0; i < 6; i++) {
+      const option = document.createElement('div');
+      option.classList.add('form__custom-option', 'non-display');
+      customBlock.append(option);
+    }
+    const customSlectedBlock = document.createElement('div');
+    const customSelected = document.createElement('div');
+    customSelected.classList.add('form__custom-selected');
+    // Создать стрелки на кастомном селекте
+    customSlectedBlock.append(customSelected);
+    customSlectedBlock.classList.add('form__custom-selected-arrow-block');
+    const arrowDown = document.createElement('div');
+    arrowDown.classList.add('form__custom-arrow-down');
+    const arrowUp = document.createElement('div');
+    arrowUp.classList.add('form__custom-arrow-up', 'non-display');
+    customSlectedBlock.append(arrowDown);
+    customSlectedBlock.append(arrowUp);
+    customBlock.prepend(customSlectedBlock);
+    // Добавить механики к опциям - их данные, взаимодействие между собой и авто-выбор, если это окно изменения данных о клиенте
+    const [optPhone, optAdditPhone, optEmail, optVk, optFacebook, optOther] =
+      inputBlock.getElementsByClassName('form__custom-option');
+    // Функция-помошник
+    function setSelection(contactType) {
+      if (type === contactType.textContent) {
+        customSelected.textContent = contactType.textContent;
+        contactType.classList.add('selected');
+      }
+    }
+    optPhone.textContent = 'Телефон';
+    setSelection(optPhone);
+
+    optAdditPhone.textContent = 'Доп. телефон';
+    // Не показывать опцию дополнительного телефона, если у клиента еще не введен основной
+    (() => {
+      let phonePresent = false;
+      const contactsPresent = target.getElementsByClassName('form__custom-selected');
+      const selectedOptions = Array.prototype.map.call(contactsPresent, x => x.textContent);
+      selectedOptions.splice(selectedOptions.length - 1, 1);
+      for (const opt of selectedOptions) {
+        if (opt === 'Телефон') {
+          phonePresent = true;
+          break;
+        }
+      }
+      if (!phonePresent) {
+        optAdditPhone.classList.add('non-display', 'disabled');
+      }
+      if (phonePresent && type === 'Телефон') {
+        optAdditPhone.classList.add('selected');
+      }
+    })();
+
+    optEmail.textContent = 'Email';
+    setSelection(optEmail);
+    optVk.textContent = 'Vk';
+    setSelection(optVk);
+    optFacebook.textContent = 'Facebook';
+    setSelection(optFacebook);
+    optOther.textContent = 'Другое';
+    // функция-помошник
+    function closeCustomSelect(selectList) {
+      const upArrow = selectList.getElementsByClassName('form__custom-arrow-up')[0];
+      const downArrow = selectList.getElementsByClassName('form__custom-arrow-down')[0];
+      downArrow.classList.remove('non-display');
+      upArrow.classList.add('non-display');
+      const customOptions = selectList.getElementsByClassName('form__custom-option');
+      for (const customOption of customOptions) {
+        customOption.classList.remove('form__custom-option--last');
+        customOption.classList.add('non-display');
+      }
+    }
+    // "Раскрыть" или "закрыть" список по нажатию на окно списка, также закрыть другие списки, расчитать позицию у
+    // каждого элемента в списке
+    const customOptions = customBlock.getElementsByClassName('form__custom-option');
+    customSelected.addEventListener('click', () => {
+      arrowDown.classList.toggle('non-display');
+      arrowUp.classList.toggle('non-display');
+      for (const customSelectList of customSelectLists) {
+        if (customSelectList.id !== customBlock.id) {
+          closeCustomSelect(customSelectList);
+        }
+      }
+      let positionCount = 0;
+      const starterPosition = 39;
+      const nextPosition = 27;
+      for (const customOption of customOptions) {
+        if (!customOption.classList.contains('disabled') && customOption.textContent !== customSelected.textContent) {
+          customOption.style.top = `${starterPosition + nextPosition * positionCount}px`;
+          positionCount++;
+          customOption.classList.toggle('non-display');
+        }
+      }
+      for (let i = customOptions.length - 1; i >= 0; i--) {
+        if (!customOptions[i].classList.contains('non-display')
+        && !customOptions[i].classList.contains('disabled')) {
+          customOptions[i].classList.add('form__custom-option--last');
+          break;
+        }
+      }
+    });
+    // При нажатии на опцию выпадающего списка, установить новое значение и "закрыть" список
+    for (const customOptionListener of customOptions) {
+      customOptionListener.addEventListener('click', () => {
+        arrowDown.classList.toggle('non-display');
+        arrowUp.classList.toggle('non-display');
+        customSelected.textContent = customOptionListener.textContent;
+        closeCustomSelect(customBlock);
+        removeError();
+      });
+    }
+    // При загрузке окна установить значение в списке и "закрыть" список
+    let selected = false;
+    for (const customOption of customOptions) {
+      if (customOption.classList.contains('selected')) {
+        customSelected.textContent = customOption.textContent;
+        selected = true;
+        break;
+      }
+      closeCustomSelect(customBlock);
+    }
+    // Проверить, является ли тип контакта одним из опций в списке
+    if (!selected) {
+      customSelected.textContent = type;
+      optOther.classList.add('selected');
+    }
+    const contactInput = addContactTextInput(inputBlock, data);
     contactInput.addEventListener('click', () => {
       for (const customSelectList of customSelectLists) {
         closeCustomSelect(customSelectList);
@@ -870,9 +882,53 @@
     });
   }
 
-  const addButton = document.getElementsByClassName('add-client__btn')[0];
-  addButton.addEventListener('click', function addClient() {
-    // Функция объявлена на строке
-    createModalForm('Новый клиент', saveToServer, 'Сохранить', closeModal, 'Отмена');
-  });
+  // Блок "Валидация инпутов"
+  function validateNameInput(nameInput) {
+    const regex = /^[а-я]*$/gi;
+    return regex.test(nameInput.value);
+  }
+
+  function validateContactInput(type, input) {
+    let regex = '';
+    let validation = false;
+    let errText = '';
+    switch (type) {
+      case 'Телефон':
+      regex = /^\+[0-9]{1,3}\s?\(?[0-9]{0,2}\)?\s?[0-9]{3}-?[0-9]{2}-?[0-9]{2}$/g;
+      errText = 'введите телефон в формате "+71234567890"';
+      break;
+      case 'Email':
+      regex = /^.*@[a-z]*\.[a-z]*$/gi;
+      errText = 'введите email в формате "test-example@gmail.com"';
+      break;
+      case 'Vk':
+      regex = /^(https:\/\/)?vk\.com\/.*$/g;
+      errText = 'введите ссылку в формате "vk.com/clientLink"';
+      break;
+      case 'Facebook':
+      regex = /^(https:\/\/)?facebook\.com\/.*$/g;
+      errText = 'введите ссылку в формате "facebook.com/clientLink"';
+      default: validation = true;
+    }
+    if (!validation) {
+      validation = regex.test(input.value);
+    }
+    return { validation, errText };
+  }
+
+  function showError(errorText) {
+    const form = document.getElementsByClassName('form')[0];
+    form.getElementsByClassName('form__contacts-block')[0].style.marginBottom = '8px';
+    const submitBtn = form.getElementsByClassName('form__button-submit')[0];
+    const formError = document.createElement('p');
+    formError.classList.add('form__error');
+    formError.textContent = `Ошибка: ${errorText}`;
+    submitBtn.before(formError);
+  }
+
+  function removeError() {
+    if (document.getElementsByClassName('form__error').length) {
+      document.getElementsByClassName('form__error')[0].remove();
+    }
+  }
 })();

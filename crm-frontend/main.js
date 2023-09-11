@@ -81,37 +81,59 @@
     }
   }
 
-  (async () => {
-    const response = await fetch(`http://localhost:3000/api/clients`);
-    const data = await response.json();
-    if (data.length === 0) {
-      for (let i = 0; i < CLIENTS_LIST.length; i++) {
-        saveToServer(CLIENTS_LIST[i]);
-      }
-    }
-    renderClientsTable(data);
-  })();
+  tableSort(sortById, ascendingSortNumbers);
+
+  // (async () => {
+  //   const response = await fetch(`http://localhost:3000/api/clients`);
+  //   const data = await response.json();
+  //   if (data.length === 0) {
+  //     for (let i = 0; i < CLIENTS_LIST.length; i++) {
+  //       saveToServer(CLIENTS_LIST[i]);
+  //     }
+  //   }
+  //   renderClientsTable(data);
+  // })();
 
   async function saveToServer(data, id = false) {
-    await fetch('http://localhost:3000/api/clients', {
+    const response = await fetch('http://localhost:3000/api/clients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    return checkServerResponse(response);
   }
 
   async function changeOnServer(data, id) {
-    await fetch(`http://localhost:3000/api/clients/${id}`, {
+    const response =  await fetch(`http://localhost:3000/api/clients/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
     });
+    return checkServerResponse(response);
   }
 
   async function deleteFromServer(id) {
-    await fetch(`http://localhost:3000/api/clients/${id}`, {
+    const response =  await fetch(`http://localhost:3000/api/clients/${id}`, {
       method: 'DELETE',
     });
+    return checkServerResponse(response);
+  }
+
+  function checkServerResponse(resp) {
+    if (resp.status === 200 || resp.status === 201) {
+      return true;
+    }
+    if (resp.status === 404) {
+      removeError();
+      showError('Клиент не найден');
+    } else if (resp.status >= 500) {
+      removeError();
+      showError('Странно, но сервер сломался');
+    } else {
+      removeError();
+      showError('Что-то пошло не так...');
+    }
+    return false;
   }
 
   function getClientData(cliebntObj) {
@@ -425,6 +447,7 @@
   function createModalBlock() {
     const overlay = document.getElementById('overlay');
     overlay.style.display = 'block';
+    overlay.addEventListener('click', () => closeModal());
 
     const modal = document.createElement('div');
     modal.classList.add('modal');
@@ -520,13 +543,12 @@
     const otherLists = contactsFormBlock.getElementsByClassName('form__custom-select');
     contactsBtn.addEventListener('click', () => {
       if (otherLists.length >= 10) {
-        showError('Достигнуто максимальное количество контактов на одного клиента');
+        contactsBtn.classList.add('non-display');
       } else {
         for (const customSelectList of otherLists) {
           closeCustomSelect(customSelectList);
         }
         addContactSelect(contactsFormBlock, otherLists, contactsBtn);
-        removeError();
       }
     });
 
@@ -545,36 +567,31 @@
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       const contactsData = getContactsDataFromForm(contactsFormBlock);
+
+      const nameBase = textInputs.nameInput.value.trim();
+      const nameFormatted = `${nameBase.slice(0, 1).toUpperCase()}${nameBase.slice(1).toLowerCase()}`;
+      const surnameBase = textInputs.surnameInput.value.trim();
+      const surnameFormatted = `${surnameBase.slice(0, 1).toUpperCase()}${surnameBase.slice(1).toLowerCase()}`;
+      const lastNameBase = textInputs.nameInput.value.trim();
+      const lastNameFormatted = `${lastNameBase.slice(0, 1).toUpperCase()}${lastNameBase.slice(1).toLowerCase()}`;
+
       const clientNewObj = {
-        name: textInputs.nameInput.value,
-        surname: textInputs.surnameInput.value,
-        lastName: textInputs.lastnameInput.value,
+        name: nameFormatted,
+        surname: surnameFormatted,
+        lastName: lastNameFormatted,
         contacts: contactsData
       };
       const invalidContacts = form.getElementsByClassName('form__contact-input--invalid');
       const invalidNames = form.getElementsByClassName('form__text-input--invalid');
       if (contactsData.length !== 0
         && !invalidContacts.length && !invalidNames.length) {
-        await submitAction(clientNewObj, clientId);
-        closeModal();
-        await reRenderTable();
+        const serverAction = await submitAction(clientNewObj, clientId);
+        if (serverAction) {
+          closeModal();
+          await reRenderTable();
+        }
       } else if (invalidContacts.length || invalidNames.length) {
-        for (const invalidName of invalidNames) {
-          invalidName.classList.add('form__text-input--invalid-submited');
-        }
-        setTimeout(() => {
-          for (const invalidName of invalidNames) {
-            invalidName.classList.remove('form__text-input--invalid-submited');
-          }
-        }, 800);
-        for (const invalidContact of invalidContacts) {
-          invalidContact.classList.add('form__contact-input--invalid-submited');
-        }
-        setTimeout(() => {
-          for (const invalidContact of invalidContacts) {
-            invalidContact.classList.remove('form__contact-input--invalid-submited');
-          }
-        }, 800);
+        highlightInvalid(invalidNames, invalidContacts);
       } else { showError('для клиента необходимо добавить как минимум один контакт'); }
     });
     submit.revertBtn.addEventListener('click', () => revertAction(clientId));
@@ -605,9 +622,11 @@
     const submitBlock = submit.submitBlock;
 
     submit.submitBtn.addEventListener('click', async () => {
-      await deleteFromServer(clientId);
-      closeModal();
-      await reRenderTable();
+      const serverAction = await deleteFromServer(clientId);
+      if (serverAction) {
+        closeModal();
+        await reRenderTable();
+      }
     });
     submit.revertBtn.addEventListener('click', () => closeModal());
 
@@ -992,6 +1011,25 @@
     return { validation, errText };
   }
 
+  function highlightInvalid(namesList, contactsList) {
+    for (const invalidName of namesList) {
+      invalidName.classList.add('form__text-input--invalid-submited');
+    }
+    setTimeout(() => {
+      for (const invalidName of namesList) {
+        invalidName.classList.remove('form__text-input--invalid-submited');
+      }
+    }, 800);
+    for (const invalidContact of contactsList) {
+      invalidContact.classList.add('form__contact-input--invalid-submited');
+    }
+    setTimeout(() => {
+      for (const invalidContact of contactsList) {
+        invalidContact.classList.remove('form__contact-input--invalid-submited');
+      }
+    }, 800);
+  }
+
   function showError(errorText) {
     const form = document.getElementsByClassName('form')[0];
     form.getElementsByClassName('form__contacts-block')[0].style.marginBottom = '8px';
@@ -1007,4 +1045,101 @@
       document.getElementsByClassName('form__error')[0].remove();
     }
   }
+
+  function ascendingSortNumbers() {
+    return (a, b) => a - b;
+  }
+
+  function descendingSortNumbers() {
+    return (a, b) => b - a;
+  }
+
+  function ascendingSortLetters() {
+    return (a, b) => {
+      if (a < b) {
+        return 1;
+      } else if (a > b) {
+        return -1;
+      }
+      return 0;
+    }
+  }
+
+  function descendingSortLetters() {
+    return (a, b) => {
+      if (a < b) {
+        return 1;
+      } else if (a > b) {
+        return -1;
+      }
+      return 0;
+    }
+  }
+
+  function sortById(sortData, sortType) {
+    const sortedArr = sortData.map(x => getClientData(x).id).sort(sortType());
+    return sortedArr.map(x => sortData.find(y => y.id === x));
+  }
+
+  function sortByFullName(sortData, sortType) {
+    const sortedArr = sortData.map(x => getClientData(x).fullName).sort(sortType());
+    return sortedArr.map(x => sortData.find(y => getClientData(y).fullName === x));
+  }
+
+  function sortByCreationDate(sortData, sortType) {
+    const sortedArr = sortData.map(x => +x.createdAt.getTime()).sort(sortType());
+    return sortedArr.map(x => sortData.find(y => +y.createdAt.getTime() === x));
+  }
+
+  function sortByChangeDate(sortData, sortType) {
+    const sortedArr = sortData.map(x => +x.updatedAt.getTime()).sort(sortType());
+    return sortedArr.map(x => sortData.find(y => +y.updatedAt.getTime() === x));
+  }
+
+  // Блок "Сортировка"
+  async function tableSort(base, type) {
+    const response = await fetch(`http://localhost:3000/api/clients`);
+    const data = await response.json();
+    for (const client of data) {
+      client.createdAt = new Date(client.createdAt);
+      client.updatedAt = new Date(client.updatedAt);
+    }
+    const targetArr = base(data, type);
+    if (document.getElementsByClassName('table__body').length) {
+      document.getElementsByClassName('table__body')[0].remove();
+    }
+    renderClientsTable(targetArr);
+  }
+
+  function addSortingMechanic(btn, sortingBase,
+    sortAscending, sortDescending, ariaText) {
+    btn.addEventListener('click', () => {
+      const previouslySorted = CORE.querySelector('.sorted');
+      previouslySorted.classList.remove('sorted');
+      const sortText = btn.querySelector('.table__header-text');
+      sortText.classList.add('sorted');
+
+      const sortArrow = btn.querySelector('.table__header-arrow');
+      if (!sortArrow.classList.contains('table__header-arrow--down')) {
+        btn.ariaLabel = `Нажмите для сортировки по колонке ${ariaText} по возрастанию`;
+        tableSort(sortingBase, sortDescending);
+      } else {
+        btn.ariaLabel = `Нажмите для сортировки по колонке ${ariaText} по убыванию`;
+        tableSort(sortingBase, sortAscending,);
+      }
+      sortArrow.classList.toggle('table__header-arrow--down');
+    });
+  }
+
+  // Добавить механику сортировки в таблицу
+  (() => {
+    const idBtn = CORE.getElementsByClassName('flex table__header--id')[0];
+    addSortingMechanic(idBtn, sortById, ascendingSortNumbers, descendingSortNumbers, 'ID');
+    const fullNameBtn = CORE.getElementsByClassName('table__header--fullname')[0];
+    addSortingMechanic(fullNameBtn, sortByFullName, ascendingSortLetters, descendingSortLetters, 'Фамилия Имя Отчество');
+    const creationDateBtn = CORE.getElementsByClassName('table__header--creation-date')[0];
+    addSortingMechanic(creationDateBtn, sortByCreationDate, ascendingSortNumbers, descendingSortNumbers, 'Дата и время создания');
+    const changeDateBtn = CORE.getElementsByClassName('table__header--change-date')[0];
+    addSortingMechanic(changeDateBtn, sortByChangeDate, ascendingSortNumbers, descendingSortNumbers, 'Последние изменения');
+  })();
 })();

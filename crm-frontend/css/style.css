@@ -166,7 +166,6 @@ body {
 .table__head {
   padding: 10px;
   padding-bottom: 8px;
-  cursor: pointer;
 }
 
 .table__head--1 {
@@ -191,18 +190,6 @@ body {
 
 .table__head--6 {
   max-width: 25%;
-}
-
-.table__header {
-  font-size: 12px;
-  font-weight: 400;
-  line-height: normal;
-  vertical-align: bottom;
-  color: var(--grey);
-}
-
-.table__header--id {
-  color: var(--purple);
 }
 
 .table__alphabet-icon {
@@ -806,3 +793,52 @@ body {
 }
 
 /*modals*/
+
+/*sorting*/
+
+.table__header {
+  justify-content: flex-start;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  text-align: left;
+  vertical-align: bottom;
+  color: var(--grey);
+}
+
+.table__header:active .table__header-text {
+  color: var(--black);
+}
+
+.table__header-text {
+  margin: 0;
+  white-space: nowrap;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: normal;
+  text-align: left;
+  vertical-align: bottom;
+  transition: color 0.3s ease-in-out;
+}
+
+.table__header-arrow {
+  display: inline-block;
+  width: 12px;
+  height: 14px;
+  margin-left: -3px;
+  margin-bottom: -3px;
+  background-image: url('../img/arrow_upward.svg');
+  background-position: center;
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.table__header-arrow--down {
+  transform: rotate(180deg);
+}
+
+.sorted {
+  color: var(--purple);
+}
+
+/*sorting*/

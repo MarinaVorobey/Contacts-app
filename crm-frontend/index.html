@@ -33,24 +33,40 @@
       <table class="table">
         <thead>
           <tr class="table__head-row">
-            <td class="table__head table__head--1" aria-label="Нажмите для сортировки по колонке ID" tabindex="0">
-              <span class="table__header table__header--id">ID</span>
+            <td class="table__head table__head--1" aria-label="Нажмите для сортировки по колонке ID">
+              <button class="table__header btn-reset flex table__header--id">
+                <p class="table__header-text sorted">ID
+                  <span class="table__header-arrow table__header-arrow--id"></span>
+                </p>
+              </button>
             </td>
-            <td class="table__head table__head--2" aria-label="Нажмите для сортировки по колонке Фамилия Имя Отчество" tabindex="0">
-              <span class="table__header">Фамилия Имя Отчество</span>
-              <span class="table__alphabet-icon">А-Я</span>
+            <td class="table__head table__head--2" aria-label="Нажмите для сортировки по колонке Фамилия Имя Отчество">
+              <button class="table__header btn-reset flex table__header--fullname">
+                <p class="table__header-text">Фамилия Имя Отчество
+                  <span class="table__header-arrow table__header-arrow--fullname table__header-arrow--down"></span>
+                  <span class="table__alphabet-icon">А-Я</span>
+                </p>
+              </button>
             </td>
-            <td class="table__head table__head--3" aria-label="Нажмите для сортировки по колонке Дата и время создания" tabindex="0">
-              <span class="table__header">Дата и&nbsp;время создания</span>
+            <td class="table__head table__head--3" aria-label="Нажмите для сортировки по колонке Дата и время создания">
+              <button class="table__header btn-reset flex table__header--creation-date">
+                <p class="table__header-text">Дата и&nbsp;время создания
+                  <span class="table__header-arrow table__header-arrow--creation-date table__header-arrow--down"></span>
+                </p>
+            </button>
             </td>
-            <td class="table__head table__head--4" aria-label="Нажмите для сортировки по колонке Последние изменения" tabindex="0">
-              <span class="table__header">Последние изменения</span>
+            <td class="table__head table__head--4" aria-label="Нажмите для сортировки по колонке Последние изменения">
+              <button class="table__header btn-reset flex table__header--change-date">
+                <p class="table__header-text">Последние изменения
+                  <span class="table__header-arrow table__header-arrow--change-date table__header-arrow--down"></span>
+                </p>
+              </button>
             </td>
-            <td class="table__head table__head--5" aria-label="Нажмите для сортировки по колонке Контакты" tabindex="0">
-              <span class="table__header">Контакты</span>
+            <td class="table__head table__head--5" aria-label="Нажмите для сортировки по колонке Контакты">
+              <span class="table__header table__header--contacts">Контакты</span>
             </td>
-            <td class="table__head table__head--6" aria-label="Нажмите для сортировки по колонке Действия" tabindex="0">
-              <span class="table__header">Действия</span>
+            <td class="table__head table__head--6" aria-label="Нажмите для сортировки по колонке Действия">
+              <span class="table__header table__header--actions">Действия</span>
             </td>
           </tr>
         </thead>

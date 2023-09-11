@@ -602,23 +602,27 @@ body {
   cursor: pointer;
 }
 
-.form__custom-arrow-down, .form__custom-arrow-up {
+.form__custom-arrow {
   position: absolute;
-  top: 13px;
-  right: 8px;
-  width: 12px;
-  height: 12px;
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
+  top: 15px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  display: inline-block;
+  border: solid var(--purple);
+  border-width: 0 2px 2px 0;
+  padding: 3px;
 }
 
-.form__custom-arrow-down {
-  background-image: url('../img/contacts_arrow_down.svg');
+.up {
+  top: 18px;
+  transform: rotate(-135deg);
+  -webkit-transform: rotate(-135deg);
 }
 
-.form__custom-arrow-up {
-  background-image: url('../img/contacts_arrow_up.svg');
+.down {
+  transform: rotate(45deg);
+  -webkit-transform: rotate(45deg);
 }
 
 .form__custom-option {

@@ -81,6 +81,7 @@
     }
   }
 
+  location.hash = '';
   tableSort(sortById, ascendingSortNumbers);
 
   // (async () => {
@@ -94,7 +95,7 @@
   //   renderClientsTable(data);
   // })();
 
-  async function saveToServer(data, id = false) {
+  async function saveToServer(data) {
     const response = await fetch('http://localhost:3000/api/clients', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -104,7 +105,7 @@
   }
 
   async function changeOnServer(data, id) {
-    const response =  await fetch(`http://localhost:3000/api/clients/${id}`, {
+    const response = await fetch(`http://localhost:3000/api/clients/${id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -113,7 +114,7 @@
   }
 
   async function deleteFromServer(id) {
-    const response =  await fetch(`http://localhost:3000/api/clients/${id}`, {
+    const response = await fetch(`http://localhost:3000/api/clients/${id}`, {
       method: 'DELETE',
     });
     return checkServerResponse(response);
@@ -135,6 +136,32 @@
     }
     return false;
   }
+
+  async function locationHashChanged() {
+    const hash = location.hash.slice(1);
+    const changeButton = document.getElementById(`table-change-${hash}`);
+    if (changeButton) {
+      changeButton.innerHTML =
+        `<svg class="table-action-loading" width="12" height="12" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path id="Vector" d="M2 20C2 29.941 10.059 38 20 38C29.941 38 38 29.941 38 20C38 10.059 29.941 2 20 2C17.6755 2 15.454 2.4405
+            13.414 3.243" stroke="#9873FF" stroke-width="4" stroke-miterlimit="10" stroke-linecap="round"/>
+            </svg>
+          Изменить`;
+    }
+    const response = await fetch(`http://localhost:3000/api/clients`);
+    const data = await response.json();
+    for (const client of data) {
+      if (client.id === hash) {
+        createModalForm('Изменить данные', changeOnServer, 'Сохранить', createDeleteModal,
+          'Удалить клиента', client.id, client.surname, client.name,
+          client.lastName, client.contacts);
+        document.getElementById('modal-close').focus();
+        setDefaultChangeIcon(changeButton);
+        break;
+      }
+    }
+  }
+  window.onhashchange = locationHashChanged;
 
   function getClientData(cliebntObj) {
     const id = cliebntObj.id;
@@ -171,9 +198,9 @@
     const tooltipText = document.createElement('span');
     tooltipText.classList.add('table__tooltip-value');
     const phoneLink = formattingContact.value.trim().replaceAll(/\s/g, '')
-    .replaceAll(/-/g, '').replaceAll(/\(/g, '').replaceAll(/\)/g, '')
+      .replaceAll(/-/g, '').replaceAll(/\(/g, '').replaceAll(/\)/g, '')
     const contactValueFormatted = formattingContact.value.trim().replaceAll(/\s/g, '&nbsp;')
-    .replaceAll(/-/g, '&#8209;');
+      .replaceAll(/-/g, '&#8209;');
 
     switch (formattingContact.type) {
       case 'Телефон': contactLink.innerHTML =
@@ -189,7 +216,7 @@
         contactLink.href = `tel:${phoneLink}`;
         tooltipText.innerHTML = contactValueFormatted;
         break;
-        case 'Доп. телефон': contactLink.innerHTML =
+      case 'Доп. телефон': contactLink.innerHTML =
         `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g id="phone" opacity="0.7">
             <circle id="Ellipse 34" cx="8" cy="8" r="8" fill="#9873FF"/>
@@ -293,9 +320,8 @@
       client.createdAt = new Date(client.createdAt);
       client.updatedAt = new Date(client.updatedAt);
     }
-
     const body = CORE.createTBody();
-    body.classList.add('table__body');
+    body.classList.add('table__body', 'non-display');
     for (let i = 0; i < clientsArray.length; i++) {
       const clientData = getClientData(clientsArray[i]);
       const tr = body.insertRow();
@@ -368,37 +394,21 @@
       }
       // Функция-помошник
       function calculateTooltipX() {
-        for (const tooltip of td5.getElementsByClassName('table__tooltip-block')) {
+        for (const tooltip of CORE.getElementsByClassName('table__tooltip-block')) {
           const width = tooltip.clientWidth;
           tooltip.style.marginLeft = `-${width / 2}px`;
         }
       }
-      calculateTooltipX();
 
       // Столбец "Действия" - изменить
       td6.classList.add('table__column--change');
       const changeButton = document.createElement('button');
       changeButton.classList.add('table__change', 'btn', 'btn-reset', 'flex');
-      changeButton.innerHTML =
-        `<svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <g id="edit" opacity="0.7" clip-path="url(#clip0_216_219)">
-      <path id="Vector" d="M2 11.5002V14.0002H4.5L11.8733 6.62687L9.37333 4.12687L2 11.5002ZM13.8067 4.69354C14.0667 4.43354
-      14.0667 4.01354 13.8067 3.75354L12.2467 2.19354C11.9867 1.93354 11.5667 1.93354 11.3067 2.19354L10.0867 3.41354L12.5867
-      5.91354L13.8067 4.69354Z" fill="#9873FF"/>
-      </g>
-      <defs>
-      <clipPath id="clip0_216_219">
-      <rect width="16" height="16" fill="white"/>
-      </clipPath>
-      </defs>
-      </svg>
-      Изменить`;
+      changeButton.id = `table-change-${clientData.id}`;
+      setDefaultChangeIcon(changeButton);
       changeButton.ariaLabel = 'Нажмите чтобы изменить данные клиента';
       changeButton.addEventListener('click', () => {
-        createModalForm('Изменить данные', changeOnServer, 'Сохранить', createDeleteModal,
-          'Удалить клиента', clientData.id, clientsArray[i].surname, clientsArray[i].name,
-          clientsArray[i].lastName, clientsArray[i].contacts);
-          document.getElementById('modal-close').focus();
+        location.hash = `#${clientsArray[i].id}`;
       });
       td6.append(changeButton);
 
@@ -428,10 +438,18 @@
       });
       td7.append(deleteButton);
     }
+    document.getElementById('loading-overlay').remove();
+    body.classList.remove('non-display');
+    calculateTooltipX();
+    const addClient = document.getElementsByClassName('add-client')[0];
+    const addClientBtn = document.getElementById('add-client-btn');
+    addClientBtn.disabled = false;
+    addClient.classList.remove('add-client--loading');
   }
 
   async function reRenderTable() {
     document.getElementsByClassName('table__body')[0].remove();
+    loadingAction(CORE, 'table', `${CORE.clientWidth}px`, '337px');
     const response = await fetch('http://localhost:3000/api/clients');
     const data = await response.json();
     renderClientsTable(data);
@@ -439,21 +457,25 @@
 
   function closeModal() {
     const overlay = document.getElementById('overlay');
-    const modal = document.getElementsByClassName('modal')[0];
     overlay.style.display = 'none';
+    const modal = document.getElementsByClassName('modal')[0];
+    location.hash = '';
     modal.remove();
   }
 
   function createModalBlock() {
-    const overlay = document.getElementById('overlay');
-    overlay.style.display = 'block';
-    overlay.addEventListener('click', () => closeModal());
-
     const modal = document.createElement('div');
     modal.classList.add('modal');
     const modalContent = document.createElement('div');
     modalContent.classList.add('modal__content');
 
+    const overlay = document.getElementById('overlay');
+    overlay.style.display = 'block';
+    overlay.addEventListener('click', () => {
+      overlay.style.display = 'none';
+      location.hash = '';
+      modal.remove();
+    });
     const modalClose = document.createElement('button');
     modalClose.classList.add('modal__close', 'btn-reset');
     modalClose.id = 'modal-close';
@@ -572,7 +594,7 @@
       const nameFormatted = `${nameBase.slice(0, 1).toUpperCase()}${nameBase.slice(1).toLowerCase()}`;
       const surnameBase = textInputs.surnameInput.value.trim();
       const surnameFormatted = `${surnameBase.slice(0, 1).toUpperCase()}${surnameBase.slice(1).toLowerCase()}`;
-      const lastNameBase = textInputs.nameInput.value.trim();
+      const lastNameBase = textInputs.lastnameInput.value.trim();
       const lastNameFormatted = `${lastNameBase.slice(0, 1).toUpperCase()}${lastNameBase.slice(1).toLowerCase()}`;
 
       const clientNewObj = {
@@ -585,10 +607,17 @@
       const invalidNames = form.getElementsByClassName('form__text-input--invalid');
       if (contactsData.length !== 0
         && !invalidContacts.length && !invalidNames.length) {
+        loadingAction(form, 'modal', `${form.clientWidth}px`, `${form.clientHeight - submitBlock.clientHeight}px`);
+        modalBtnsloading();
         const serverAction = await submitAction(clientNewObj, clientId);
         if (serverAction) {
           closeModal();
           await reRenderTable();
+        }
+        const loading = document.getElementById('loading-overlay');
+        if (loading) {
+          modalBtnsDefault(submit.submitBtn, submitText, submit.revertBtn);
+          loading.remove();
         }
       } else if (invalidContacts.length || invalidNames.length) {
         highlightInvalid(invalidNames, invalidContacts);
@@ -622,10 +651,13 @@
     const submitBlock = submit.submitBlock;
 
     submit.submitBtn.addEventListener('click', async () => {
+      modalBtnsloading();
       const serverAction = await deleteFromServer(clientId);
       if (serverAction) {
         closeModal();
         await reRenderTable();
+      } else {
+        modalBtnsDefault(submit.submitBtn, submitText, submit.revertBtn);
       }
     });
     submit.revertBtn.addEventListener('click', () => closeModal());
@@ -857,7 +889,7 @@
         if (valid.validation !== true && checkedInput.value) {
           checkedInput.classList.add('form__contact-input--invalid');
           showError(valid.errText);
-      }
+        }
       }
 
       customOptionListener.addEventListener('click', () => {
@@ -885,6 +917,7 @@
       optOther.classList.add('selected');
     }
     const contactInput = addContactTextInput(inputBlock, data);
+    contactInput.id = `form-contact-input${customSelectLists.length + 1}`;
     contactInput.addEventListener('click', () => {
       for (const customSelectList of customSelectLists) {
         closeCustomSelect(customSelectList);
@@ -954,8 +987,8 @@
         showError(valid.errText);
       }
     });
+    const otherLists = document.getElementsByClassName('form__custom-select');
     deleteContact.addEventListener('click', () => {
-      const otherLists = document.getElementsByClassName('form__custom-select');
       for (const customSelectList of otherLists) {
         closeCustomSelect(customSelectList);
       }
@@ -965,7 +998,7 @@
     return contactInput;
   }
 
-  const addButton = document.getElementsByClassName('add-client__btn')[0];
+  const addButton = document.getElementById('add-client-btn');
   addButton.addEventListener('click', function addClient() {
     // Функция объявлена на строке
     createModalForm('Новый клиент', saveToServer, 'Сохранить', closeModal, 'Отмена');
@@ -1056,9 +1089,11 @@
 
   function ascendingSortLetters() {
     return (a, b) => {
-      if (a < b) {
+      const nameA = a.toUpperCase();
+      const nameB = b.toUpperCase();
+      if (nameA < nameB) {
         return 1;
-      } else if (a > b) {
+      } else if (nameA > nameB) {
         return -1;
       }
       return 0;
@@ -1067,10 +1102,12 @@
 
   function descendingSortLetters() {
     return (a, b) => {
-      if (a < b) {
-        return 1;
-      } else if (a > b) {
+      const nameA = a.toUpperCase();
+      const nameB = b.toUpperCase();
+      if (nameA < nameB) {
         return -1;
+      } else if (nameA > nameB) {
+        return 1;
       }
       return 0;
     }
@@ -1098,6 +1135,10 @@
 
   // Блок "Сортировка"
   async function tableSort(base, type) {
+    if (document.getElementsByClassName('table__body').length) {
+      document.getElementsByClassName('table__body')[0].remove();
+    }
+    loadingAction(CORE, 'table', `${CORE.clientWidth}px`, '337px');
     const response = await fetch(`http://localhost:3000/api/clients`);
     const data = await response.json();
     for (const client of data) {
@@ -1105,9 +1146,6 @@
       client.updatedAt = new Date(client.updatedAt);
     }
     const targetArr = base(data, type);
-    if (document.getElementsByClassName('table__body').length) {
-      document.getElementsByClassName('table__body')[0].remove();
-    }
     renderClientsTable(targetArr);
   }
 
@@ -1133,13 +1171,90 @@
 
   // Добавить механику сортировки в таблицу
   (() => {
-    const idBtn = CORE.getElementsByClassName('flex table__header--id')[0];
+    const idBtn = document.getElementById('table__header--id');
     addSortingMechanic(idBtn, sortById, ascendingSortNumbers, descendingSortNumbers, 'ID');
-    const fullNameBtn = CORE.getElementsByClassName('table__header--fullname')[0];
+    const fullNameBtn = document.getElementById('table__header--fullname');
     addSortingMechanic(fullNameBtn, sortByFullName, ascendingSortLetters, descendingSortLetters, 'Фамилия Имя Отчество');
-    const creationDateBtn = CORE.getElementsByClassName('table__header--creation-date')[0];
+    const creationDateBtn = document.getElementById('table__header--creation-date');
     addSortingMechanic(creationDateBtn, sortByCreationDate, ascendingSortNumbers, descendingSortNumbers, 'Дата и время создания');
-    const changeDateBtn = CORE.getElementsByClassName('table__header--change-date')[0];
+    const changeDateBtn = document.getElementById('table__header--change-date');
     addSortingMechanic(changeDateBtn, sortByChangeDate, ascendingSortNumbers, descendingSortNumbers, 'Последние изменения');
   })();
+
+  // Раздел "Загрузка"
+  function setDefaultChangeIcon(changeBtn) {
+    changeBtn.innerHTML =
+      `<svg class="table__change-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <g id="edit" opacity="0.7" clip-path="url(#clip0_216_219)">
+      <path id="Vector" d="M2 11.5002V14.0002H4.5L11.8733 6.62687L9.37333 4.12687L2 11.5002ZM13.8067 4.69354C14.0667 4.43354
+      14.0667 4.01354 13.8067 3.75354L12.2467 2.19354C11.9867 1.93354 11.5667 1.93354 11.3067 2.19354L10.0867 3.41354L12.5867
+      5.91354L13.8067 4.69354Z" fill="#9873FF"/>
+      </g>
+      <defs>
+      <clipPath id="clip0_216_219">
+      <rect width="16" height="16" fill="white"/>
+      </clipPath>
+      </defs>
+      </svg>
+      Изменить`;
+  }
+
+  function modalBtnsloading() {
+    const submitBtn = document.getElementsByClassName('form__button-submit')[0];
+      submitBtn.disabled = true;
+      const submitText = submitBtn.textContent;
+      submitBtn.innerHTML = `<svg class="loading-icon-submit" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16" fill="none">
+      <g clip-path="url(#clip0_224_6321)">
+      <path d="M3.00008 8.03996C3.00008 10.8234 5.2566 13.08 8.04008 13.08C10.8236 13.08 13.0801
+      10.8234 13.0801 8.03996C13.0801 5.25648 10.8236 2.99996 8.04008 2.99996C7.38922
+      2.99996 6.7672 3.1233 6.196 3.348" stroke="#B89EFF" stroke-width="2" stroke-miterlimit="10" stroke-linecap="round"/>
+      </g>
+      <defs>
+      <clipPath id="clip0_224_6321">
+      <rect width="16" height="16" fill="white"/>
+      </clipPath>
+      </defs>
+      </svg>
+      ${submitText}`;
+      const revertBtn = document.getElementsByClassName('form__button-revert')[0];
+      revertBtn.disabled = true;
+  }
+
+  function modalBtnsDefault(submit, submitTxt, revert) {
+    submit.innerHTML = `${submitTxt}`;
+    submit.disabled = false;
+    revert.disabled = false;
+  }
+
+  function loadingAction(overlaying, type, width, height) {
+    const loadingOverlay = document.createElement('div');
+    loadingOverlay.id = 'loading-overlay';
+    loadingOverlay.classList.add('loading-overlay');
+
+    if (type === 'table') {
+      const addClient = document.getElementsByClassName('add-client')[0];
+      addClient.classList.add('add-client--loading');
+      const addClientBtn = document.getElementById('add-client-btn');
+      addClientBtn.disabled = true;
+      loadingOverlay.style.width = width;
+      loadingOverlay.style.height = height;
+      loadingOverlay.style.top = `0`;
+      overlaying.after(loadingOverlay);
+    }
+
+    if (type === 'modal') {
+      loadingOverlay.style.width = width;
+      loadingOverlay.style.height = height;
+      loadingOverlay.style.top = `50px`;
+      overlaying.before(loadingOverlay);
+      modalBtnsloading();
+    }
+    const loadingOverlayContent = document.createElement('div');
+    loadingOverlayContent.classList.add('loading-overlay__content');
+    loadingOverlay.append(loadingOverlayContent);
+
+    const loader = document.createElement('div');
+    loader.id = 'loader';
+    loadingOverlayContent.append(loader);
+  }
 })();

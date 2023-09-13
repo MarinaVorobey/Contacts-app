@@ -23,56 +23,64 @@
             fill="white" />
         </svg>
       </a>
-      <input class="header__input" type="text" placeholder="Введите запрос" aria-label="Введите запрос для поиска по таблице">
+      <input class="header__input" id="search-input" type="text" placeholder="Введите запрос"
+        aria-label="Введите запрос для поиска по таблице">
     </div>
   </header>
 
   <section class="table-section">
     <div class="container">
       <h1 class="table-section__title">Клиенты</h1>
-      <table class="table">
-        <thead>
-          <tr class="table__head-row">
-            <td class="table__head table__head--1" aria-label="Нажмите для сортировки по колонке ID">
-              <button class="table__header btn-reset flex table__header--id">
-                <p class="table__header-text sorted">ID
-                  <span class="table__header-arrow table__header-arrow--id"></span>
-                </p>
-              </button>
-            </td>
-            <td class="table__head table__head--2" aria-label="Нажмите для сортировки по колонке Фамилия Имя Отчество">
-              <button class="table__header btn-reset flex table__header--fullname">
-                <p class="table__header-text">Фамилия Имя Отчество
-                  <span class="table__header-arrow table__header-arrow--fullname table__header-arrow--down"></span>
-                  <span class="table__alphabet-icon">А-Я</span>
-                </p>
-              </button>
-            </td>
-            <td class="table__head table__head--3" aria-label="Нажмите для сортировки по колонке Дата и время создания">
-              <button class="table__header btn-reset flex table__header--creation-date">
-                <p class="table__header-text">Дата и&nbsp;время создания
-                  <span class="table__header-arrow table__header-arrow--creation-date table__header-arrow--down"></span>
-                </p>
-            </button>
-            </td>
-            <td class="table__head table__head--4" aria-label="Нажмите для сортировки по колонке Последние изменения">
-              <button class="table__header btn-reset flex table__header--change-date">
-                <p class="table__header-text">Последние изменения
-                  <span class="table__header-arrow table__header-arrow--change-date table__header-arrow--down"></span>
-                </p>
-              </button>
-            </td>
-            <td class="table__head table__head--5" aria-label="Нажмите для сортировки по колонке Контакты">
-              <span class="table__header table__header--contacts">Контакты</span>
-            </td>
-            <td class="table__head table__head--6" aria-label="Нажмите для сортировки по колонке Действия">
-              <span class="table__header table__header--actions">Действия</span>
-            </td>
-          </tr>
-        </thead>
-      </table>
-      <div class="add-client flex">
-        <button class="btn add-client__btn btn-reset flex" aria-label="Нажмите чтобы добавить новый контакт">
+      <div class="table-block">
+        <table id="table" class="table">
+          <thead>
+            <tr class="table__head-row">
+              <td class="table__head table__head--1">
+                <button class="table__header btn-reset flex" id="table__header--id"
+                  aria-label="Нажмите для сортировки по колонке ID">
+                  <p class="table__header-text sorted">ID
+                    <span class="table__header-arrow table__header-arrow--id"></span>
+                  </p>
+                </button>
+              </td>
+              <td class="table__head table__head--2">
+                <button class="table__header btn-reset flex" id="table__header--fullname"
+                  aria-label="Нажмите для сортировки по колонке Фамилия Имя Отчество">
+                  <p class="table__header-text">Фамилия Имя Отчество
+                    <span class="table__header-arrow table__header-arrow--fullname table__header-arrow--down"></span>
+                    <span class="table__alphabet-icon">А-Я</span>
+                  </p>
+                </button>
+              </td>
+              <td class="table__head table__head--3">
+                <button class="table__header btn-reset flex" id="table__header--creation-date"
+                  aria-label="Нажмите для сортировки по колонке Дата и время создания">
+                  <p class="table__header-text">Дата и&nbsp;время создания
+                    <span
+                      class="table__header-arrow table__header-arrow--creation-date table__header-arrow--down"></span>
+                  </p>
+                </button>
+              </td>
+              <td class="table__head table__head--4">
+                <button class="table__header btn-reset flex" id="table__header--change-date"
+                  aria-label="Нажмите для сортировки по колонке Последние изменения">
+                  <p class="table__header-text">Последние изменения
+                    <span class="table__header-arrow table__header-arrow--change-date table__header-arrow--down"></span>
+                  </p>
+                </button>
+              </td>
+              <td class="table__head table__head--5" aria-label="Нажмите для сортировки по колонке Контакты">
+                <span class="table__header table__header--contacts">Контакты</span>
+              </td>
+              <td class="table__head table__head--6" aria-label="Нажмите для сортировки по колонке Действия">
+                <span class="table__header table__header--actions">Действия</span>
+              </td>
+            </tr>
+          </thead>
+        </table>
+      </div>
+      <div class="add-client add-client--loading flex">
+        <button id="add-client-btn" class="btn add-client__btn btn-reset flex" aria-label="Нажмите чтобы добавить новый контакт">
           <svg class="add-client__icon" aria-hidden="true" width="23" height="16" viewBox="0 0 23 16" fill="none"
             xmlns="http://www.w3.org/2000/svg">
             <path id="Vector"

@@ -68,8 +68,15 @@
       ],
     },
   ];
-  const COLUMN_COUNT = 7;
+  const VIEWPORT = window.innerWidth;
+  let mobileRes = false;
+  if (VIEWPORT < 768) {
+    mobileRes = true;
+  }
+  const COLUMN_COUNT = 6;
   let searchedArray = [];
+  const searchInput = document.getElementById('search-input');
+  const searchBlock = document.getElementsByClassName('header__autocomplete-block')[0];
 
   async function deletePreviousList() {
     const response = await fetch(`http://localhost:3000/api/clients`);
@@ -198,7 +205,7 @@
     const tooltipText = document.createElement('span');
     tooltipText.classList.add('table__tooltip-value');
     const phoneLink = formattingContact.value.trim().replaceAll(/\s/g, '')
-      .replaceAll(/-/g, '').replaceAll(/\(/g, '').replaceAll(/\)/g, '')
+      .replaceAll(/-/g, '').replaceAll(/\(/g, '').replaceAll(/\)/g, '');
     const contactValueFormatted = formattingContact.value.trim().replaceAll(/\s/g, '&nbsp;')
       .replaceAll(/-/g, '&#8209;');
 
@@ -316,6 +323,7 @@
   }
 
   function renderClientsTable(clientsArray) {
+    searchBlock.innerHTML = '';
     for (const client of clientsArray) {
       client.createdAt = new Date(client.createdAt);
       client.updatedAt = new Date(client.updatedAt);
@@ -326,6 +334,7 @@
       const clientData = getClientData(clientsArray[i]);
       const tr = body.insertRow();
       tr.classList.add('table__row');
+      tr.id = `table-row-${i + 1}`;
 
       let j = 0;
       while (j < COLUMN_COUNT) {
@@ -335,7 +344,7 @@
         ++j;
       }
 
-      const [td1, td2, td3, td4, td5, td6, td7] =
+      const [td1, td2, td3, td4, td5, td6] =
         body.getElementsByClassName(`table__column--${i + 1}`);
       // Столбец "ID"
       td1.textContent = clientData.id;
@@ -348,11 +357,11 @@
       // Столбец "Дата и время создания" и "Последние изменения"
       // Функция-помошник
       function addDateTimeColumns(column, data) {
-        const spanDate = document.createElement('span');
+        const spanDate = document.createElement('p');
         spanDate.classList.add('table__text', 'table__text--date');
         spanDate.textContent = clientData[data].date;
 
-        const spanTime = document.createElement('span');
+        const spanTime = document.createElement('p');
         spanTime.classList.add('table__text', 'table__text--time');
         spanTime.textContent = clientData[data].time;
 
@@ -400,8 +409,8 @@
         }
       }
 
-      // Столбец "Действия" - изменить
-      td6.classList.add('table__column--change');
+      // Столбец "Действия"
+      td6.classList.add('table__column--actions');
       const changeButton = document.createElement('button');
       changeButton.classList.add('table__change', 'btn', 'btn-reset', 'flex');
       changeButton.id = `table-change-${clientData.id}`;
@@ -412,8 +421,6 @@
       });
       td6.append(changeButton);
 
-      // Столбец "Действия" - удалить
-      td7.classList.add('table__column--delete');
       const deleteButton = document.createElement('button');
       deleteButton.classList.add('table__delete', 'btn', 'btn-reset', 'flex');
       deleteButton.innerHTML =
@@ -436,23 +443,29 @@
         createDeleteModal(clientsArray[i].id);
         document.getElementById('modal-close').focus();
       });
-      td7.append(deleteButton);
+      td6.append(deleteButton);
     }
     document.getElementById('loading-overlay').remove();
     body.classList.remove('non-display');
     calculateTooltipX();
+    if (mobileRes) {
+      const scrollBlock = document.getElementsByClassName('table-block')[0];
+      scrollBlock.style.overflowX = 'scroll';
+    }
     const addClient = document.getElementsByClassName('add-client')[0];
     const addClientBtn = document.getElementById('add-client-btn');
     addClientBtn.disabled = false;
     addClient.classList.remove('add-client--loading');
   }
 
-  async function reRenderTable() {
+  async function reRenderTable(dataArr) {
     document.getElementsByClassName('table__body')[0].remove();
     loadingAction(CORE, 'table', `${CORE.clientWidth}px`, '337px');
-    const response = await fetch('http://localhost:3000/api/clients');
-    const data = await response.json();
-    renderClientsTable(data);
+    if (!dataArr) {
+      const response = await fetch('http://localhost:3000/api/clients');
+      const data = await response.json();
+      renderClientsTable(data);
+    } else { renderClientsTable(dataArr); }
   }
 
   function closeModal() {
@@ -511,6 +524,7 @@
   // Блок "Добавление, изменение и удаление клиентов"; Работа с модальными окнами
   function createModalForm(titleText, submitAction, submitText, revertAction, revertText,
     clientId = '', clientSurname = '', clientName = '', clientLastname = '', clientContacts = '') {
+    searchBlock.innerHTML = '';
     const modal = createModalBlock().modal;
     const modalContent = createModalBlock().modalContent;
 
@@ -765,7 +779,7 @@
   function addContactSelect(target, customSelectLists, addBtn,
     type = 'Телефон', data = '') {
     // Создать блоки, включающие в себя контент
-    target.style.padding = '25px 30px'
+    target.style.padding = '25px 0'
     const inputBlock = document.createElement('div');
     inputBlock.classList.add('form__contact', 'flex');
 
@@ -832,6 +846,14 @@
     optFacebook.textContent = 'Facebook';
     setSelection(optFacebook);
     optOther.textContent = 'Другое';
+
+    const contactInput = addContactTextInput(inputBlock, data);
+    contactInput.name = 'contact-input';
+    contactInput.addEventListener('click', () => {
+      for (const customSelectList of customSelectLists) {
+        closeCustomSelect(customSelectList);
+      }
+    });
     // "Раскрыть" или "закрыть" список по нажатию на окно списка, также закрыть другие списки, расчитать позицию у
     // каждого элемента в списке
     const customOptions = customBlock.getElementsByClassName('form__custom-option');
@@ -876,7 +898,8 @@
       }
     });
     // При нажатии на опцию выпадающего списка, установить новое значение и "закрыть" список
-    for (const customOptionListener of customOptions) {
+    for (let i = 0; i < customOptions.length; i++) {
+      const customOptionListener = customOptions[i];
       function customOptionEvent() {
         arrow.classList.toggle('down');
         arrow.classList.toggle('up');
@@ -899,6 +922,19 @@
         if (e.key === 'Enter') {
           customOptionEvent();
         }
+        if (e.key === 'ArrowDown') {
+          if (i + 1 < customOptions.length) {
+            customOptions[i + 1].focus();
+          } else {
+            closeCustomSelect(customBlock);
+            contactInput.focus();
+          }
+        }
+        if (e.key === 'ArrowUp') {
+          if (i - 1 >= 0) {
+            customOptions[i - 1].focus();
+          }
+        }
       });
     }
     // При загрузке окна установить значение в списке и "закрыть" список
@@ -916,13 +952,6 @@
       customSelected.textContent = type;
       optOther.classList.add('selected');
     }
-    const contactInput = addContactTextInput(inputBlock, data);
-    contactInput.id = `form-contact-input${customSelectLists.length + 1}`;
-    contactInput.addEventListener('click', () => {
-      for (const customSelectList of customSelectLists) {
-        closeCustomSelect(customSelectList);
-      }
-    });
   }
 
   function addContactTextInput(targetBlock, contactData) {
@@ -1134,19 +1163,24 @@
   }
 
   // Блок "Сортировка"
-  async function tableSort(base, type) {
+  async function tableSort(action, type, searched) {
     if (document.getElementsByClassName('table__body').length) {
       document.getElementsByClassName('table__body')[0].remove();
     }
     loadingAction(CORE, 'table', `${CORE.clientWidth}px`, '337px');
-    const response = await fetch(`http://localhost:3000/api/clients`);
-    const data = await response.json();
-    for (const client of data) {
-      client.createdAt = new Date(client.createdAt);
-      client.updatedAt = new Date(client.updatedAt);
+    if (!searched) {
+      const response = await fetch(`http://localhost:3000/api/clients`);
+      const data = await response.json();
+      for (const client of data) {
+        client.createdAt = new Date(client.createdAt);
+        client.updatedAt = new Date(client.updatedAt);
+      }
+      const targetArr = action(data, type);
+      renderClientsTable(targetArr);
+    } else {
+      const targetArr = action(searched, type);
+      renderClientsTable(targetArr);
     }
-    const targetArr = base(data, type);
-    renderClientsTable(targetArr);
   }
 
   function addSortingMechanic(btn, sortingBase,
@@ -1160,10 +1194,18 @@
       const sortArrow = btn.querySelector('.table__header-arrow');
       if (!sortArrow.classList.contains('table__header-arrow--down')) {
         btn.ariaLabel = `Нажмите для сортировки по колонке ${ariaText} по возрастанию`;
-        tableSort(sortingBase, sortDescending);
+
+        if (!searchedArray.length) {
+          tableSort(sortingBase, sortDescending);
+        } else { tableSort(sortingBase, sortDescending, searchedArray); }
+
       } else {
         btn.ariaLabel = `Нажмите для сортировки по колонке ${ariaText} по убыванию`;
-        tableSort(sortingBase, sortAscending,);
+
+        if (!searchedArray.length) {
+          tableSort(sortingBase, sortAscending,);
+        } else { tableSort(sortingBase, sortAscending, searchedArray); }
+
       }
       sortArrow.classList.toggle('table__header-arrow--down');
     });
@@ -1256,5 +1298,194 @@
     const loader = document.createElement('div');
     loader.id = 'loader';
     loadingOverlayContent.append(loader);
+    if (mobileRes && type === 'table') {
+      loader.style.left = `${VIEWPORT / 2 - 40}px`;
+      const scrollBlock = document.getElementsByClassName('table-block')[0];
+      scrollBlock.scrollTo({
+        left: 0,
+        behavior: "smooth",
+      });
+      scrollBlock.style.overflowX = 'visible';
+    }
   }
+
+  // Раздел "Поиск по таблице"
+  // Поиск проводится по полям "id" и "Фамилия Имя Отчество"
+  async function searchTable(request) {
+    const searchedArrCopy = [];
+    const requestArr = request.split(' ');
+    const numArr = requestArr.filter( (str) => str.match(/\d+/g) );
+    const wordArr = requestArr.filter( (str) => str.match(/[а-я]+/gi) );
+
+    const response = await fetch(`http://localhost:3000/api/clients`);
+    const data = await response.json();
+    for (const client of data) {
+      client.createdAt = new Date(client.createdAt);
+      client.updatedAt = new Date(client.updatedAt);
+    }
+
+    function searchData(searchRequest, type) {
+      // Функция-помошник
+      function checkIfAlreadySearched(filteredList) {
+        for (const filtred of filteredList) {
+          const searchedIds = searchedArrCopy.map(x => x.id);
+          if (!searchedIds.includes(filtred.id)) {
+            searchedArrCopy.push(filtred);
+          }
+        }
+      }
+      if (type === 'id') {
+        const regex = new RegExp(`(${searchRequest})+?`, 'g');
+        const filteredById = data.filter( x => (x.id.match(regex)) );
+        checkIfAlreadySearched(filteredById);
+      }
+      if (type === 'name') {
+        if (wordArr.length) {
+          const regex = new RegExp(`(${searchRequest})+?`, 'gi');
+          const filteredByName = data.filter(x => ( getClientData(x).fullName.match(regex) ));
+          checkIfAlreadySearched(filteredByName);
+        }
+      }
+    }
+
+    for (const numArrItem of numArr) {
+      searchData(numArrItem, 'id');
+    }
+    searchData(wordArr.join(' '), 'name');
+    return searchedArrCopy;
+  }
+
+  function nothingFound() {
+    document.getElementsByClassName('table__body')[0].remove();
+    const body = CORE.createTBody();
+    body.classList.add('table__body');
+    const tr = body.insertRow();
+    tr.classList.add('table__row');
+
+    const td = document.createElement('td');
+    td.classList.add('table__column', `table__column--nothing-found`);
+    td.setAttribute('colspan', 6);
+
+    const noDataText = document.createElement('p');
+    noDataText.classList.add('table__no-data-text');
+    noDataText.textContent = 'Ничего не найдено';
+    const noDataTip = document.createElement('p');
+    noDataTip.classList.add('table__no-data-tip');
+    noDataTip.textContent = 'Введите в запрос часть полного имени клиента и/или его id';
+
+    td.append(noDataText);
+    td.append(noDataTip);
+    tr.append(td);
+  }
+
+  function autocomplete(entries) {
+    const searchInputWidth = searchInput.clientWidth;
+    const entriesLimited = entries.slice(0, 5);
+    for (let i = 0; i < entriesLimited.length; i++) {
+      const autocompleteOption = document.createElement('div');
+      autocompleteOption.classList.add('header__autocomplete-option', 'flex');
+      autocompleteOption.id = `autocomplete-option-${i}`;
+      autocompleteOption.tabIndex = 0;
+      autocompleteOption.style.width = `${searchInputWidth}px`;
+      const foundId = document.createElement('p');
+      foundId.classList.add('header__autocomplete-id');
+      const foundName = document.createElement('p');
+      foundName.classList.add('header__autocomplete-name');
+      autocompleteOption.append(foundId);
+      autocompleteOption.append(foundName);
+
+      const entry = entriesLimited[i];
+      foundId.textContent = `id: ${entry.id}`;
+      foundName.textContent = getClientData(entry).fullName;
+      searchBlock.append(autocompleteOption);
+
+      autocompleteOption.addEventListener('click', () => {
+        const idColumns = CORE.getElementsByClassName('table__column--id');
+        let targetColumn = null;
+        for (const idColumn of idColumns) {
+          if (idColumn.textContent === entry.id) {
+            targetColumn = idColumn;
+            break;
+          }
+        }
+        const rowNumber = targetColumn.classList[1].match(/\d+/g);
+        const targetRow = document.getElementById(`table-row-${rowNumber}`);
+        targetRow.scrollIntoView({ behavior: "smooth", block: "center" });
+        targetRow.classList.add('table__searched-row');
+        setTimeout(() => {
+          targetRow.classList.remove('table__searched-row');
+        }, 1000);
+        searchBlock.innerHTML = '';
+      });
+      autocompleteOption.addEventListener('keydown', (e) => {
+        const otherOptions = searchBlock.children;
+        if (e.key === 'ArrowDown' && otherOptions.length > i + 1) {
+          const nextOption = document.getElementById(`autocomplete-option-${i + 1}`);
+          nextOption.focus();
+        }
+        if (e.key === 'ArrowUp' && i - 1 >= 0) {
+          document.getElementById(`autocomplete-option-${i - 1}`).focus();
+        }
+      });
+    }
+    if (entries.length > 5) {
+      const showMoreOption = document.createElement('div');
+      showMoreOption.classList.add('header__autocomplete-option',
+      'header__autocomplete-show-more', 'flex');
+      showMoreOption.tabIndex = 0;
+      showMoreOption.id = 'autocomplete-option-5';
+      showMoreOption.style.width = `${searchInputWidth}px`;
+      showMoreOption.textContent = 'Нажмите сюда или на "Enter" в поле ввода, чтобы показать всех найденных клиентов';
+      showMoreOption.addEventListener('click', () => {
+        reRenderTable(entries);
+        searchBlock.innerHTML = '';
+        searchedArray = entries;
+      });
+      showMoreOption.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          reRenderTable(entries);
+          searchBlock.innerHTML = '';
+          searchedArray = entries;
+        }
+        if (e.key === 'ArrowUp') {
+          document.getElementById('autocomplete-option-4').focus();
+        }
+      });
+      searchBlock.append(showMoreOption);
+    }
+  }
+
+  let autocompleteTimeout = null;
+  searchInput.addEventListener('input', () => {
+    if (!searchInput.value.trim()) {
+      searchInput.value = '';
+      searchedArray = [];
+      reRenderTable();
+    } else {
+        onkeydown = (e) => {
+          if (e.key !== 'Tab' && e.key !== 'Shift'
+          && e.key !== 'ArrowUp' && e.key !== 'ArrowDown') {
+            searchBlock.innerHTML = '';
+          }
+          clearTimeout(autocompleteTimeout);
+        };
+      autocompleteTimeout = setTimeout(async () => {
+        const updateSearchArr = await searchTable(searchInput.value);
+        autocomplete(updateSearchArr);
+      }, 300);
+    }
+  });
+
+  searchInput.addEventListener('keydown', async (e) => {
+    if (e.key === 'Enter') {
+      const updateSearchArr = await searchTable(searchInput.value);
+      if (updateSearchArr.length) {
+        reRenderTable(updateSearchArr);
+        searchedArray = updateSearchArr;
+      } else { nothingFound(); }
+    }
+    if (e.key === 'ArrowDown') {
+      document.getElementsByClassName('header__autocomplete-option')[0].focus();
+    }
+  });
 })();

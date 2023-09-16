@@ -1,17 +1,18 @@
 @media (max-width: 1024px) {
+  #table__header--creation-date {
+    white-space: normal;
+  }
+
+  .table__header-text {
+    white-space: normal;
+  }
+
   .table__text--date {
     width: 100%;
   }
 
-  #table__header--creation-date {
-    white-space: wrap;
-  }
-
-  .table__header-text {
-    white-space: wrap;
-  }
-
   .table__column--actions {
+    -ms-flex-wrap: wrap;
     flex-wrap: wrap;
     gap: 5px;
     margin-top: 8px;
@@ -39,6 +40,8 @@
   }
 
   .header__container {
+    -webkit-box-pack: center;
+    -ms-flex-pack: center;
     justify-content: center;
   }
 
@@ -47,7 +50,7 @@
     height: 25px;
   }
 
-  .header__input {
+  .header__search-block {
     display: none;
   }
 
@@ -64,9 +67,10 @@
   .modal__close {
     top: 10px;
     right: 15px;
-}
+  }
 
   .modal__title-block {
+    -ms-flex-wrap: wrap;
     flex-wrap: wrap;
     gap: 4px;
   }
@@ -75,12 +79,9 @@
     width: 100%;
   }
 
-  .form__contacts-block {
-    justify-content: stretch;
-  }
-
   .form__contact {
     width: 100%;
+    -ms-flex-negative: 1;
     flex-shrink: 1;
   }
 
@@ -90,7 +91,7 @@
 
   .form__custom-option {
     min-width: 100px;
-    white-space: wrap;
+    white-space: normal;
   }
 
   .form__contact-input {

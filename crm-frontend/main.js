@@ -15,7 +15,13 @@
 
   let searchedArray = [];
   location.hash = '';
-  tableSort(sortById, ascendingSortNumbers);
+  (async () => {
+    const response = await fetch('http://localhost:3000/api/clients');
+    const data = await response.json();
+    if (data.length) {
+      tableSort(sortById, ascendingSortNumbers);
+    }
+  })();
 
   // Раздел "Работа с сервером"
   async function saveToServer(data) {

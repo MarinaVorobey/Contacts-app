@@ -38,9 +38,10 @@
 
 Полезные функции
 Это переменные и функции, которые использовались для проверки работы программы.
-Возможно, они будут полезны и вам. Вы можете скопировать код ниже в js файл,чтобы сразу отрисовать
+Возможно, они будут полезны и вам. Вы можете скопировать код ниже в js файл, чтобы сразу отрисовать
 "рыбный" список клиентов в таблице.
-// Переменная, содержащая "рыбный" список клиентов
+
+Чтобы вставить список через консоль используйте:
 const CLIENTS_LIST = [
     {
       name: 'Денис',
@@ -109,6 +110,25 @@ const CLIENTS_LIST = [
     },
   ];
 
+  async function saveToServer(data) {
+    const response = await fetch('http://localhost:3000/api/clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Функция для отрисовки таблицы с рыбным списком клиентов, если база данных пуста. 
+  (async () => {
+    const response = await fetch(`http://localhost:3000/api/clients`);
+    const data = await response.json();
+    if (data.length === 0) {
+      for (let i = 0; i < CLIENTS_LIST.length; i++) {
+        saveToServer(CLIENTS_LIST[i]);
+      }
+    }
+  })();
+
 // Функция для удаления всех клиентов одновременно
   async function deletePreviousList() {
     const response = await fetch(`http://localhost:3000/api/clients`);
@@ -121,16 +141,4 @@ const CLIENTS_LIST = [
         });
     }
   }
-
-// Функция для отрисовки таблицы с рыбным списком клиентов, если база данных пуста. 
-  (async () => {
-    const response = await fetch(`http://localhost:3000/api/clients`);
-    const data = await response.json();
-    if (data.length === 0) {
-      for (let i = 0; i < CLIENTS_LIST.length; i++) {
-        saveToServer(CLIENTS_LIST[i]);
-      }
-    }
-    renderClientsTable(data);
-  })();
-
+  deletePreviousList();

@@ -3,6 +3,7 @@
 Каждый раздел объявляется с помощью комментария, например:
 // Раздел "Загрузка"
 Краткое содержание по разделам:
+
 1. Параметры по умолчанию
 2. Параметры, которые обнуляются, или автоматически расчитываются при загрузке страницы
 3. Раздел "Работа с сервером"
@@ -13,28 +14,30 @@
 8. Раздел "Сортировка таблицы"
 9. Раздел "Загрузка"
 10. Раздел "Поиск по таблице";
-Функции, объявляемые внутри других функций подписываются в комментариях над их объявлением:
-// Функция-помошник
+    Функции, объявляемые внутри других функций подписываются в комментариях над их объявлением:
+    // Функция-помошник
 
 Дополнительные улучшения
+
 1. Анимация открытия модального окна (доп. задание 1)
 2. Ссылка на карточку клиента (доп. задание 2)
 3. Валидация формы перед отправкой на сервер (доп. задание 3)
-4. Дополнительная подсветка неправильно заполненных полей, в случае если пользователь 
-проигнорировал сообщение об ошибке и попытался отправить ошибочные данные на сервер
+4. Дополнительная подсветка неправильно заполненных полей, в случае если пользователь
+   проигнорировал сообщение об ошибке и попытался отправить ошибочные данные на сервер
 5. Индикация загрузки (доп. задание 4)
-6. Изменяющийся aria-label для кнопок сортировки таблицы (пишет о том, в каком порядке 
-сейчас отсортирована таблица)
+6. Изменяющийся aria-label для кнопок сортировки таблицы (пишет о том, в каком порядке
+   сейчас отсортирована таблица)
 7. Поиск с автодополнением (доп. задание 5)
 
 Отклонения от задания (и их причины)
-1. Валидация инпутов происходит при изменении данных в них, когда инпут теряет фокус, 
-а не когда пользователь начинает печатать в инпутах что-либо (event 'change' вместо event 'input').
-Причина: Ошибки всплывают даже когда пользователь только начинает вводить значение,
-а также при попытке ориентации по пустым полям формы с помощью клавиатуры, что довольно сильно режет глаз.
+
+1. Валидация инпутов происходит при изменении данных в них, когда инпут теряет фокус,
+   а не когда пользователь начинает печатать в инпутах что-либо (event 'change' вместо event 'input').
+   Причина: Ошибки всплывают даже когда пользователь только начинает вводить значение,
+   а также при попытке ориентации по пустым полям формы с помощью клавиатуры, что довольно сильно режет глаз.
 2. Отправка запроса на автозаполнение происходит через 600 мс после ввода последнего символа, а не через 300.
-Причина: время, отведенное на отложеннось запроса слишком маленькое. Во время моей работы с поиском,
-варианты для автозаполнения менялись после ввода каждого символа, что сильно увеличило бы нагрузку на сервер. 
+   Причина: время, отведенное на отложеннось запроса слишком маленькое. Во время моей работы с поиском,
+   варианты для автозаполнения менялись после ввода каждого символа, что сильно увеличило бы нагрузку на сервер.
 
 Полезные функции
 Это переменные и функции, которые использовались для проверки работы программы.
@@ -42,103 +45,105 @@
 "рыбный" список клиентов в таблице.
 
 Чтобы вставить список через консоль используйте:
+
+```javascript
 const CLIENTS_LIST = [
-    {
-      name: 'Денис',
-      surname: 'Скворцов',
-      lastName: 'Юрьевич',
-      contacts: [
-        {
-          type: 'Телефон',
-          value: '+71234567890'
-        },
-        {
-          type: 'Email',
-          value: 'abc@xyz.com'
-        },
-        {
-          type: 'Facebook',
-          value: 'https://facebook.com/vasiliy-pupkin-the-best'
-        }
-      ],
-    },
-    {
-      name: 'Арсений',
-      surname: 'Куприянов',
-      lastName: 'Валерьевич',
-      contacts: [
-        {
-          type: 'Телефон',
-          value: '+80654567890'
-        },
-        {
-          type: 'Email',
-          value: 'ytujik@xyz.com'
-        },
-        {
-          type: 'Twitter',
-          value: '@cuprianov'
-        },
-        {
-          type: 'Email',
-          value: 'ytujik@xyz.com'
-        },
-        {
-          type: 'Email',
-          value: 'ytujik@xyz.com'
-        },
-        {
-          type: 'Email',
-          value: 'ytujik@xyz.com'
-        },
-      ],
-    },
-    {
-      name: 'Олег',
-      surname: 'Димитревский',
-      lastName: 'Алексеевич',
-      contacts: [
-        {
-          type: 'Телефон',
-          value: '+23904567890'
-        },
-        {
-          type: 'Vk',
-          value: 'https://vk.com/dimitrevsky'
-        }
-      ],
-    },
-  ];
+  {
+    name: "Денис",
+    surname: "Скворцов",
+    lastName: "Юрьевич",
+    contacts: [
+      {
+        type: "Телефон",
+        value: "+71234567890",
+      },
+      {
+        type: "Email",
+        value: "abc@xyz.com",
+      },
+      {
+        type: "Facebook",
+        value: "https://facebook.com/vasiliy-pupkin-the-best",
+      },
+    ],
+  },
+  {
+    name: "Арсений",
+    surname: "Куприянов",
+    lastName: "Валерьевич",
+    contacts: [
+      {
+        type: "Телефон",
+        value: "+80654567890",
+      },
+      {
+        type: "Email",
+        value: "ytujik@xyz.com",
+      },
+      {
+        type: "Twitter",
+        value: "@cuprianov",
+      },
+      {
+        type: "Email",
+        value: "ytujik@xyz.com",
+      },
+      {
+        type: "Email",
+        value: "ytujik@xyz.com",
+      },
+      {
+        type: "Email",
+        value: "ytujik@xyz.com",
+      },
+    ],
+  },
+  {
+    name: "Олег",
+    surname: "Димитревский",
+    lastName: "Алексеевич",
+    contacts: [
+      {
+        type: "Телефон",
+        value: "+23904567890",
+      },
+      {
+        type: "Vk",
+        value: "https://vk.com/dimitrevsky",
+      },
+    ],
+  },
+];
 
-  async function saveToServer(data) {
-    const response = await fetch('http://localhost:3000/api/clients', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(data),
-    });
-  }
+async function saveToServer(data) {
+  const response = await fetch("http://localhost:3000/api/clients", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(data),
+  });
+}
 
-  // Функция для отрисовки таблицы с рыбным списком клиентов, если база данных пуста. 
-  (async () => {
-    const response = await fetch(`http://localhost:3000/api/clients`);
-    const data = await response.json();
-    if (data.length === 0) {
-      for (let i = 0; i < CLIENTS_LIST.length; i++) {
-        saveToServer(CLIENTS_LIST[i]);
-      }
+// Функция для отрисовки таблицы с рыбным списком клиентов, если база данных пуста.
+(async () => {
+  const response = await fetch(`http://localhost:3000/api/clients`);
+  const data = await response.json();
+  if (data.length === 0) {
+    for (let i = 0; i < CLIENTS_LIST.length; i++) {
+      saveToServer(CLIENTS_LIST[i]);
     }
-  })();
+  }
+})();
 
 // Функция для удаления всех клиентов одновременно
-  async function deletePreviousList() {
-    const response = await fetch(`http://localhost:3000/api/clients`);
-    const data = await response.json();
-    const data2 = data.map(x => x.id);
-    for (let i = 0; i < data2.length; i++) {
-      await fetch(`http://localhost:3000/api/clients/${data2[i]}`,
-        {
-          method: 'DELETE',
-        });
-    }
+async function deletePreviousList() {
+  const response = await fetch(`http://localhost:3000/api/clients`);
+  const data = await response.json();
+  const data2 = data.map((x) => x.id);
+  for (let i = 0; i < data2.length; i++) {
+    await fetch(`http://localhost:3000/api/clients/${data2[i]}`, {
+      method: "DELETE",
+    });
   }
-  deletePreviousList();
+}
+deletePreviousList();
+```

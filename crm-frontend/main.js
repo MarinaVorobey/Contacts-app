@@ -15,13 +15,13 @@
 
   let searchedArray = [];
   location.hash = '';
-  (async () => {
+  window.addEventListener("load", async () => {
     const response = await fetch('http://localhost:3000/api/clients');
     const data = await response.json();
     if (data.length) {
       tableSort(sortById, ascendingSortNumbers);
     }
-  })();
+  });
 
   // Раздел "Работа с сервером"
   async function saveToServer(data) {
@@ -229,8 +229,11 @@
           </g>
         </svg>`;
         contactLink.href = `${formattingContact.value}`;
-        tooltipText.innerHTML = `${formattingContact.type}:&nbsp;<span class="table__tooltip-link">${contactValueFormatted}</span>`;
-        break;
+        const defaultSpan = document.createElement('span');
+        defaultSpan.classList.add('table__tooltip-link');
+        defaultSpan.textContent = contactValueFormatted;
+        tooltipText.innerHTML = `${formattingContact.type}:&nbsp;`;
+        tooltipText.append(defaultSpan);
     }
     tooltipBlock.append(tooltipText);
     contactLink.append(tooltipBlock);
@@ -837,7 +840,7 @@
         const checkedInput = inputBlock.getElementsByClassName('form__contact-input')[0];
         checkedInput.classList.remove('form__contact-input--invalid');
         const valid = validateContactInput(customSelected.textContent, checkedInput);
-        if (valid.validation !== true && checkedInput.value) {
+        if (valid.validation && checkedInput.value) {
           checkedInput.classList.add('form__contact-input--invalid');
           showError(valid.errText);
         }
